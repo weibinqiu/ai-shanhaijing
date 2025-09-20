@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI山海经 - 游戏进入测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.success {
+            background: #28a745;
+        }
+        .test-button.success:hover {
+            background: #1e7e34;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .console-log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .character-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .character-card:hover {
+            transform: translateY(-3px);
+        }
+        .character-card.stickman {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+        }
+        .character-card.shark {
+            background: linear-gradient(135deg, #4682B4 0%, #1E90FF 100%);
+        }
+        .character-card.coffee-ninja {
+            background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
+        }
+        .character-card.ice-camel {
+            background: linear-gradient(135deg, #00CED1 0%, #20B2AA 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 AI山海经 - 游戏进入测试</h1>
+        <p style="text-align: center; color: #666;">测试角色选择和游戏进入功能是否正常工作</p>
+
+        <div class="test-section">
+            <h3>🧪 角色选择测试</h3>
+            <div class="character-grid">
+                <div class="character-card stickman" onclick="testCharacterSelect('stickman')">
+                    <div>木棒人</div>
+                    <div style="font-size: 0.8em;">Lv.1</div>
+                </div>
+                <div class="character-card shark" onclick="testCharacterSelect('shark')">
+                    <div>耐克鲨鱼</div>
+                    <div style="font-size: 0.8em;">Lv.5</div>
+                </div>
+                <div class="character-card coffee-ninja" onclick="testCharacterSelect('coffee-ninja')">
+                    <div>咖啡忍者</div>
+                    <div style="font-size: 0.8em;">Lv.4</div>
+                </div>
+                <div class="character-card ice-camel" onclick="testCharacterSelect('ice-camel')">
+                    <div>冰箱骆驼</div>
+                    <div style="font-size: 0.8em;">Lv.10</div>
+                </div>
+            </div>
+            <div id="character-status" class="status info">点击上方角色卡片测试选择功能</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 功能测试</h3>
+            <button class="test-button" onclick="testGameElements()">检查游戏元素</button>
+            <button class="test-button" onclick="testGameClass()">检查Game类</button>
+            <button class="test-button" onclick="testSoundSystem()">测试音效系统</button>
+            <button class="test-button" onclick="testGameStart()">测试游戏启动</button>
+            <div id="test-status" class="status info">点击上方按钮开始测试</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 启动游戏</h3>
+            <button class="test-button success" onclick="window.location.href='index.html'">启动主游戏</button>
+            <button class="test-button" onclick="window.open('index.html', '_blank')">在新窗口启动</button>
+            <div id="launch-status" class="status info">点击按钮启动主游戏</div>
+        </div>
+
+        <div class="console-log" id="console-log">
+            <div style="color: #48bb78;">[测试页面] 控制台已初始化</div>
+            <div style="color: #e2e8f0;">等待测试操作...</div>
+        </div>
+    </div>
+
+    <!-- 引用游戏文件 -->
+    <script src="game.js"></script>
+
+    <script>
+        let testGame = null;
+        const consoleLog = document.getElementById('console-log');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f56565' : type === 'success' ? '#48bb78' : type === 'warning' ? '#ed8936' : '#e2e8f0';
+            const logDiv = document.createElement('div');
+            logDiv.style.color = color;
+            logDiv.innerHTML = `[${timestamp}] ${message}`;
+            consoleLog.appendChild(logDiv);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        function testCharacterSelect(character) {
+            log(`测试角色选择: ${character}`, 'info');
+            updateStatus('character-status', `选择了角色: ${character}`, 'success');
+
+            // 检查Game类是否存在
+            if (typeof Game !== 'undefined') {
+                log('Game类已定义', 'success');
+
+                // 尝试创建Game实例
+                try {
+                    testGame = new Game();
+                    log('Game实例创建成功', 'success');
+
+                    // 测试角色选择方法
+                    if (typeof testGame.selectCharacter === 'function') {
+                        log('selectCharacter方法存在', 'success');
+
+                        // 尝试选择角色
+                        try {
+                            testGame.selectedCharacter = character;
+                            log(`角色设置成功: ${character}`, 'success');
+
+                            // 测试游戏启动方法
+                            if (typeof testGame.startGame === 'function') {
+                                log('startGame方法存在', 'success');
+                                updateStatus('character-status', `角色 ${character} 选择成功，可以启动游戏！`, 'success');
+                            } else {
+                                log('startGame方法不存在', 'error');
+                                updateStatus('character-status', '错误: startGame方法不存在', 'error');
+                            }
+                        } catch (error) {
+                            log(`角色选择失败: ${error.message}`, 'error');
+                            updateStatus('character-status', `错误: ${error.message}`, 'error');
+                        }
+                    } else {
+                        log('selectCharacter方法不存在', 'error');
+                        updateStatus('character-status', '错误: selectCharacter方法不存在', 'error');
+                    }
+                } catch (error) {
+                    log(`Game实例创建失败: ${error.message}`, 'error');
+                    updateStatus('character-status', `错误: ${error.message}`, 'error');
+                }
+            } else {
+                log('Game类未定义', 'error');
+                updateStatus('character-status', '错误: Game类未加载', 'error');
+            }
+        }
+
+        function testGameElements() {
+            log('检查游戏DOM元素...', 'info');
+
+            const elements = [
+                'character-select',
+                'game-screen',
+                'game-layer',
+                'camera',
+                'ui-layer'
+            ];
+
+            let allExist = true;
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ 元素存在: ${id}`, 'success');
+                } else {
+                    log(`❌ 元素不存在: ${id}`, 'error');
+                    allExist = false;
+                }
+            });
+
+            if (allExist) {
+                updateStatus('test-status', '所有游戏元素检查通过', 'success');
+            } else {
+                updateStatus('test-status', '部分游戏元素缺失', 'error');
+            }
+        }
+
+        function testGameClass() {
+            log('检查Game类...', 'info');
+
+            if (typeof Game === 'undefined') {
+                log('❌ Game类未定义', 'error');
+                updateStatus('test-status', '错误: Game类未加载', 'error');
+                return;
+            }
+
+            log('✅ Game类已定义', 'success');
+
+            // 检查关键方法
+            const methods = [
+                'constructor',
+                'selectCharacter',
+                'startGame',
+                'initializePlayer',
+                'renderMap',
+                'gameLoop'
+            ];
+
+            let allMethodsExist = true;
+            methods.forEach(method => {
+                if (typeof Game.prototype[method] === 'function') {
+                    log(`✅ 方法存在: ${method}`, 'success');
+                } else {
+                    log(`❌ 方法不存在: ${method}`, 'error');
+                    allMethodsExist = false;
+                }
+            });
+
+            if (allMethodsExist) {
+                updateStatus('test-status', 'Game类方法检查通过', 'success');
+            } else {
+                updateStatus('test-status', 'Game类部分方法缺失', 'error');
+            }
+        }
+
+        function testSoundSystem() {
+            log('测试音效系统...', 'info');
+
+            if (typeof Game === 'undefined') {
+                log('❌ Game类未定义，无法测试音效系统', 'error');
+                updateStatus('test-status', '错误: Game类未加载', 'error');
+                return;
+            }
+
+            try {
+                const game = new Game();
+                log('✅ Game实例创建成功', 'success');
+
+                // 检查音效相关属性
+                if (typeof game.soundEnabled === 'boolean') {
+                    log(`✅ soundEnabled: ${game.soundEnabled}`, 'success');
+                } else {
+                    log('❌ soundEnabled属性不存在', 'error');
+                }
+
+                // 检查playSound方法
+                if (typeof game.playSound === 'function') {
+                    log('✅ playSound方法存在', 'success');
+
+                    // 测试播放音效（应该被禁用）
+                    try {
+                        game.playSound('test');
+                        log('✅ playSound方法调用成功（应该被禁用）', 'success');
+                        updateStatus('test-status', '音效系统已禁用，正常工作', 'success');
+                    } catch (error) {
+                        log(`❌ playSound调用失败: ${error.message}`, 'error');
+                        updateStatus('test-status', `音效系统错误: ${error.message}`, 'error');
+                    }
+                } else {
+                    log('❌ playSound方法不存在', 'error');
+                    updateStatus('test-status', '错误: playSound方法不存在', 'error');
+                }
+            } catch (error) {
+                log(`❌ Game实例创建失败: ${error.message}`, 'error');
+                updateStatus('test-status', `错误: ${error.message}`, 'error');
+            }
+        }
+
+        function testGameStart() {
+            log('测试游戏启动流程...', 'info');
+
+            if (typeof Game === 'undefined') {
+                log('❌ Game类未定义', 'error');
+                updateStatus('test-status', '错误: Game类未加载', 'error');
+                return;
+            }
+
+            try {
+                const game = new Game();
+                log('✅ Game实例创建成功', 'success');
+
+                // 测试游戏初始化
+                if (typeof game.init === 'function') {
+                    log('✅ init方法存在', 'success');
+                    try {
+                        game.init();
+                        log('✅ 游戏初始化成功', 'success');
+                    } catch (error) {
+                        log(`⚠️ 游戏初始化警告: ${error.message}`, 'warning');
+                    }
+                }
+
+                // 测试角色选择和启动
+                if (typeof game.selectCharacter === 'function' && typeof game.startGame === 'function') {
+                    log('✅ 角色选择和启动方法存在', 'success');
+
+                    // 模拟选择角色但不实际启动（避免页面跳转）
+                    game.selectedCharacter = 'stickman';
+                    log('✅ 角色设置成功', 'success');
+
+                    updateStatus('test-status', '游戏启动流程测试通过，可以尝试启动主游戏', 'success');
+                } else {
+                    log('❌ 角色选择或启动方法不存在', 'error');
+                    updateStatus('test-status', '错误: 关键方法缺失', 'error');
+                }
+            } catch (error) {
+                log(`❌ 游戏启动测试失败: ${error.message}`, 'error');
+                updateStatus('test-status', `错误: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            log('测试页面加载完成', 'success');
+            log('开始检查依赖...', 'info');
+
+            // 检查是否加载了game.js
+            if (typeof Game !== 'undefined') {
+                log('✅ game.js已加载', 'success');
+                updateStatus('launch-status', '游戏文件已加载，可以启动游戏', 'success');
+            } else {
+                log('❌ game.js未加载', 'error');
+                updateStatus('launch-status', '错误: 游戏文件未加载', 'error');
+            }
+
+            // 检查其他依赖
+            const scripts = document.querySelectorAll('script[src]');
+            log(`发现 ${scripts.length} 个脚本文件`, 'info');
+            scripts.forEach(script => {
+                log(`📄 脚本: ${script.src}`, 'info');
+            });
+        });
+
+        // 监听全局错误
+        window.addEventListener('error', function(event) {
+            log(`全局错误: ${event.message} (${event.filename}:${event.lineno})`, 'error');
+        });
+    </script>
+</body>
+</html>

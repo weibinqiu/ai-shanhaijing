@@ -1,0 +1,1651 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* 屏幕容器 */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    z-index: 1;
+}
+
+.screen.active {
+    display: block;
+    z-index: 10;
+}
+
+#game-screen.active {
+    z-index: 5;
+}
+
+#battle-screen.active {
+    z-index: 15;
+}
+
+/* 角色选择界面 */
+#character-select {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.character-select-container {
+    text-align: center;
+    padding: 50px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.character-select-container h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 18px;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+/* 恢复并优化的角色选择样式 */
+.character-options {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: nowrap; /* 强制横向排列，不换行 */
+    overflow-x: auto; /* 横向滚动 */
+    padding: 20px 0;
+    max-width: 100%;
+}
+
+.character-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 220px;
+    max-width: 250px;
+    flex-shrink: 0; /* 防止卡片被压缩 */
+}
+
+.character-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.character-card.selected {
+    animation: selectedPulse 1s ease-in-out infinite alternate;
+    border-color: #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes selectedPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+    }
+}
+
+/* 放大角色头像 */
+.character-avatar {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.character-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 缩小其他信息 */
+.character-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #fff;
+    text-align: center;
+}
+
+.character-stats {
+    margin-bottom: 8px;
+}
+
+.stat {
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2px;
+}
+
+.stat-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.character-abilities {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 2px;
+    margin-bottom: 8px;
+    justify-content: center;
+}
+
+.ability {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 2px 4px;
+    border-radius: 6px;
+    font-size: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+.select-btn {
+    width: 100%;
+    padding: 6px;
+    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.select-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 滚动条样式优化 */
+.character-options::-webkit-scrollbar {
+    height: 8px;
+}
+
+.character-options::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.character-options::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.character-options::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .character-options {
+        gap: 20px;
+        padding: 15px 0;
+    }
+    
+    .character-card {
+        min-width: 180px;
+        max-width: 200px;
+        padding: 15px;
+    }
+    
+    .character-avatar {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .character-card h3 {
+        font-size: 16px;
+    }
+    
+    .stat-label {
+        font-size: 10px;
+    }
+    
+    .ability {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    
+    .select-btn {
+        font-size: 12px;
+        padding: 6px;
+    }
+    
+    /* 制作人员信息在移动端隐藏 */
+    #credits {
+        display: none;
+    }
+}
+
+/* 平板端适配 */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .character-options {
+        gap: 25px;
+    }
+    
+    .character-card {
+        min-width: 200px;
+        max-width: 220px;
+    }
+    
+    .character-avatar {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+.stickman-avatar {
+    background: linear-gradient(45deg, #8B4513, #D2691E);
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.5);
+}
+
+.shark-avatar {
+    background: linear-gradient(45deg, #4682B4, #1E90FF);
+    box-shadow: 0 0 20px rgba(70, 130, 180, 0.5);
+}
+
+.ice-camel-avatar {
+    background: linear-gradient(45deg, #00CED1, #48D1CC);
+    box-shadow: 0 0 20px rgba(0, 206, 209, 0.5);
+}
+
+/* 角色卡片悬停效果 */
+.character-card:hover .character-avatar {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+.character-card:hover .character-avatar img {
+    transform: scale(1.1);
+}
+
+/* 角色卡片选中效果 */
+.character-card.selected .character-avatar {
+    animation: selectedPulse 1s ease-in-out infinite alternate;
+    border-color: #ffd700;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes selectedPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+    }
+}
+
+/* 角色头像发光效果 */
+.character-avatar::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b, #4ecdc4, #ffd700);
+    background-size: 400% 400%;
+    animation: glowingBorder 3s ease-in-out infinite;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.character-card:hover .character-avatar::before,
+.character-card.selected .character-avatar::before {
+    opacity: 1;
+}
+
+@keyframes glowingBorder {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.character-card h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #ffd700;
+}
+
+.character-stats {
+    margin-bottom: 20px;
+}
+
+.stat {
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 5px;
+    opacity: 0.8;
+}
+
+.stat-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd700, #ff6b6b);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.character-abilities {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.ability {
+    background: rgba(255, 215, 0, 0.2);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.select-btn {
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.select-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+/* 游戏主界面 */
+#game-world {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    background: linear-gradient(135deg, #2d5016 0%, #3e6b1f 50%, #2d5016 100%);
+}
+
+#camera {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+
+#game-layer {
+    position: absolute;
+    width: 2000px;
+    height: 2000px;
+    transform-style: preserve-3d;
+    transform: rotateX(30deg) translateZ(0);
+}
+
+/* 地图网格 */
+.map-tile {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.map-tile.grass {
+    background: linear-gradient(45deg, #4a7c59, #5d8a6b);
+}
+
+.map-tile.stone {
+    background: linear-gradient(45deg, #8b8680, #a8a8a8);
+}
+
+.map-tile.water {
+    background: linear-gradient(45deg, #4682b4, #5f9ea0);
+}
+
+/* 角色样式 */
+.character {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+
+.character.player {
+    border: 3px solid rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    z-index: 20;
+}
+
+.character.monster {
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+.character.stickman {
+    background: linear-gradient(45deg, #8B4513, #D2691E);
+}
+
+.character.shark {
+    background: linear-gradient(45deg, #4682B4, #1E90FF);
+}
+
+/* 角色图片样式 */
+.character-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 血条样式 */
+.health-bar-container {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    z-index: 15;
+}
+
+.health-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4444, #ff6666);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 3px rgba(255, 68, 68, 0.5);
+}
+
+.health-bar-fill.medium {
+    background: linear-gradient(90deg, #ffaa00, #ffcc00);
+}
+
+.health-bar-fill.high {
+    background: linear-gradient(90deg, #44ff44, #66ff66);
+}
+
+/* 玩家血条 */
+.character.player .health-bar-container {
+    width: 90px;
+    height: 10px;
+    top: -15px;
+}
+
+.character.player .health-bar-fill {
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    box-shadow: 0 0 3px rgba(76, 175, 80, 0.5);
+}
+
+/* 受伤效果 */
+.character.damaged {
+    animation: damageFlash 0.3s ease-in-out;
+}
+
+@keyframes damageFlash {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(2) hue-rotate(180deg); }
+}
+
+/* 等级标识 */
+.level-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    color: white;
+    font-size: 10px !important;
+    font-weight: bold;
+    padding: 2px 6px !important;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    z-index: 1000 !important;
+    display: block !important;
+    visibility: visible !important;
+    min-width: 25px;
+    text-align: center;
+}
+
+/* NPC等级标识 */
+.npc-level-badge {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.9);
+    color: #333;
+    padding: 2px 6px !important;
+    border-radius: 10px;
+    font-size: 10px !important;
+    font-weight: bold;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    z-index: 1001 !important;
+    display: block !important;
+    visibility: visible !important;
+    min-width: 25px;
+    text-align: center;
+}
+
+/* 角色状态效果 */
+.character.buffed {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+    animation: buffGlow 1s ease-in-out infinite alternate;
+}
+
+.character.debuffed {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+    animation: debuffGlow 1s ease-in-out infinite alternate;
+}
+
+@keyframes buffGlow {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+@keyframes debuffGlow {
+    0% { filter: brightness(1); }
+    100% { filter: brightness(0.7) hue-rotate(180deg); }
+}
+
+/* 游戏UI */
+#game-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+#game-ui > * {
+    pointer-events: auto;
+}
+
+#player-info {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.player-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.player-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.health-bar {
+    width: 200px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.health-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.player-level {
+    font-size: 14px;
+    color: #ffd700;
+    font-weight: bold;
+}
+
+#skill-bar {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    z-index: 100;
+}
+
+.skill-slot {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.skill-slot:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.skill-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.skill-cooldown {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    display: none;
+}
+
+.skill-slot.on-cooldown .skill-cooldown {
+    display: block;
+}
+
+#controls-hint {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 12px;
+    opacity: 0.8;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 移动动画 */
+.character.moving {
+    animation: bounce 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-3px); }
+}
+
+/* 技能特效 */
+.skill-effect {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: skillBlast 0.6s ease-out forwards;
+}
+
+@keyframes skillBlast {
+    0% {
+        width: 20px;
+        height: 20px;
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0);
+    }
+    100% {
+        width: 100px;
+        height: 100px;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* 道具样式 */
+.item {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    animation: float 2s ease-in-out infinite alternate;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-5px); }
+}
+
+.item:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.8);
+}
+
+/* 响应式设计 */
+/* 战斗界面样式 */
+#battle-screen {
+    display: none;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1000;
+}
+
+#battle-screen.active {
+    display: block !important;
+}
+
+.battle-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    background-size: 100px 100px;
+    animation: battleBackgroundMove 20s linear infinite;
+}
+
+@keyframes battleBackgroundMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px 100px; }
+}
+
+.battle-scene {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 80px 50px 0;
+    gap: 150px;
+}
+
+.battle-player-area,
+.battle-enemy-area {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.battle-character {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.player-battle-character {
+    border-color: rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+.enemy-battle-character {
+    border-color: rgba(255, 0, 0, 0.5);
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+}
+
+.battle-character-image {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: contain;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.battle-health-bar {
+    width: 180px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.battle-health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.enemy-battle-character .battle-health-fill {
+    background: linear-gradient(90deg, #ff4444, #ff6666);
+}
+
+.battle-health-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.battle-character-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    margin-top: 10px;
+}
+
+/* 战斗UI */
+.battle-ui {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 15px;
+}
+
+.battle-skill-bar {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.battle-skill-slot {
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.battle-skill-slot:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+}
+
+.battle-skill-slot.on-cooldown {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.battle-skill-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.battle-skill-key {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 215, 0, 0.8);
+    color: white;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.battle-skill-name {
+    font-size: 12px;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+}
+
+.battle-skill-cooldown {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 13px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.battle-skill-slot.on-cooldown .battle-skill-cooldown {
+    display: flex;
+}
+
+.battle-info {
+    text-align: center;
+}
+
+.battle-log {
+    height: 60px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: white;
+}
+
+.battle-turn-indicator {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 10px;
+}
+
+.battle-escape-btn button {
+    background: linear-gradient(45deg, #ff6b35, #f44336);
+    border: 2px solid #d32f2f;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.battle-escape-btn button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.6);
+    background: linear-gradient(45deg, #ff5722, #d32f2f);
+}
+
+/* 战斗特效层 */
+.battle-effects-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* 战斗动画 */
+.battle-character.attacking {
+    animation: battleAttack 0.5s ease-in-out;
+}
+
+.battle-character.damaged {
+    animation: battleDamage 0.5s ease-in-out;
+}
+
+.battle-character.victorious {
+    animation: battleVictory 1s ease-in-out infinite alternate;
+}
+
+@keyframes battleAttack {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2) translateX(20px); }
+    100% { transform: scale(1); }
+}
+
+@keyframes battleDamage {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+@keyframes battleVictory {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* 技能特效 */
+.battle-skill-effect {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.battle-skill-effect.player-skill {
+    background: radial-gradient(circle, rgba(0, 255, 0, 0.8) 0%, rgba(0, 255, 0, 0) 70%);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.8);
+}
+
+.battle-skill-effect.enemy-skill {
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, rgba(255, 0, 0, 0) 70%);
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+}
+
+/* 胜利界面 */
+.victory-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.victory-content {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 40px;
+    border-radius: 20px;
+    border: 3px solid #ffd700;
+    text-align: center;
+    animation: victoryAppear 0.5s ease-out;
+}
+
+@keyframes victoryAppear {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.victory-content h2 {
+    font-size: 36px;
+    color: #ffd700;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.victory-rewards {
+    margin: 20px 0;
+}
+
+.victory-exp,
+.victory-gold {
+    font-size: 18px;
+    color: white;
+    margin: 10px 0;
+}
+
+.victory-stats {
+    margin: 20px 0;
+    color: white;
+}
+
+.victory-damage-dealt,
+.victory-damage-taken {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.victory-continue-btn {
+    background: linear-gradient(45deg, #ffd700, #ff6b6b);
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.victory-continue-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+/* 伤害数字 */
+.battle-damage-number {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 20;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.battle-damage-number.player-damage {
+    color: #4caf50;
+}
+
+.battle-damage-number.enemy-damage {
+    color: #ff4444;
+}
+
+.battle-damage-number.critical {
+    color: #ffd700;
+    font-size: 32px;
+}
+
+/* 战斗飘字 */
+.battle-floating-text {
+    position: absolute;
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 25;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.battle-floating-text.heal {
+    color: #4caf50;
+}
+
+.battle-floating-text.buff {
+    color: #2196f3;
+}
+
+.battle-floating-text.debuff {
+    color: #ff9800;
+}
+
+@media (max-width: 768px) {
+    .character-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .character-card {
+        min-width: 280px;
+    }
+    
+    #player-info {
+        top: 10px;
+        left: 10px;
+        padding: 10px;
+    }
+    
+    .health-bar {
+        width: 150px;
+    }
+    
+    #skill-bar {
+        bottom: 15px;
+        padding: 8px;
+    }
+    
+    .skill-slot {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .skill-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+    }
+    
+    .battle-scene {
+        padding: 60px 20px 0;
+    }
+    
+    .battle-player-area,
+    .battle-enemy-area {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .battle-character {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .battle-character-image {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .battle-ui {
+        width: 90%;
+        bottom: 15px;
+    }
+    
+    .battle-skill-bar {
+        gap: 10px;
+    }
+    
+    .battle-skill-slot {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .battle-skill-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+}
+
+/* 战斗增强动画效果 */
+
+/* 技能释放特效 */
+@keyframes playerAttack {
+    0% { 
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    50% { 
+        transform: translateX(100px) scale(1.5);
+        opacity: 0.8;
+    }
+    100% { 
+        transform: translateX(200px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+@keyframes enemyAttack {
+    0% { 
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+    50% { 
+        transform: translateX(-100px) scale(1.5);
+        opacity: 0.8;
+    }
+    100% { 
+        transform: translateX(-200px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* 胜利动画 */
+@keyframes victoryPulse {
+    0% { 
+        transform: scale(1);
+        filter: brightness(1);
+    }
+    50% { 
+        transform: scale(1.1);
+        filter: brightness(1.5);
+    }
+    100% { 
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+/* 角色战斗动画 */
+.battle-character.player-battle-character {
+    animation: playerIdle 2s ease-in-out infinite alternate;
+}
+
+.battle-character.enemy-battle-character {
+    animation: enemyIdle 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes playerIdle {
+    0% { transform: translateY(0px) rotate(-2deg); }
+    100% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes enemyIdle {
+    0% { transform: translateY(0px) rotate(2deg); }
+    100% { transform: translateY(-8px) rotate(-2deg); }
+}
+
+/* 技能冷却闪烁效果 */
+.battle-skill-slot.cooldown {
+    animation: cooldownPulse 1s ease-in-out infinite;
+}
+
+@keyframes cooldownPulse {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+        transform: scale(1.05);
+    }
+    100% { 
+        box-shadow: 0 0 0 0 rgba(255, 68, 68, 0);
+        transform: scale(1);
+    }
+}
+
+/* 战斗技能特效增强 */
+.battle-skill-effect {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+}
+
+.battle-skill-effect.player-skill {
+    left: 30%;
+    animation: playerSkillEffect 0.8s ease-out forwards;
+}
+
+.battle-skill-effect.enemy-skill {
+    left: 70%;
+    animation: enemySkillEffect 0.8s ease-out forwards;
+}
+
+@keyframes playerSkillEffect {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+    30% { 
+        transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(200%, -50%) scale(0.3) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes enemySkillEffect {
+    0% { 
+        transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+    30% { 
+        transform: translate(-50%, -50%) scale(1.5) rotate(-180deg);
+        opacity: 1;
+    }
+    100% { 
+        transform: translate(-200%, -50%) scale(0.3) rotate(-360deg);
+        opacity: 0;
+    }
+}
+
+/* 伤害数字动画 */
+.battle-damage-number {
+    position: absolute;
+    font-weight: bold;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 200;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    animation: damageFloat 1.5s ease-out forwards;
+}
+
+@keyframes damageFloat {
+    0% { 
+        transform: translateY(0) scale(0.5);
+        opacity: 0;
+    }
+    20% { 
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+    100% { 
+        transform: translateY(-80px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* 血条闪烁效果 */
+.battle-health-fill.low-health {
+    animation: healthWarning 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes healthWarning {
+    0% { 
+        box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+    }
+    100% { 
+        box-shadow: 0 0 10px 5px rgba(255, 68, 68, 0);
+    }
+}
+
+/* 回合指示器动画 */
+.battle-turn-indicator {
+    animation: turnPulse 2s ease-in-out infinite;
+}
+
+@keyframes turnPulse {
+    0% { 
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+    50% { 
+        transform: scale(1.05);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+    100% { 
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+}
+
+/* 战斗背景动态效果 */
+.battle-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    animation: backgroundPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundPulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+/* 技能点击反馈 */
+.battle-skill-slot:active {
+    transform: scale(0.95);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 胜利界面动画 */
+.victory-screen {
+    animation: victoryFadeIn 0.8s ease-out forwards;
+}
+
+@keyframes victoryFadeIn {
+    0% { 
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.victory-content {
+    background: linear-gradient(135deg, 
+        rgba(255, 215, 0, 0.9) 0%, 
+        rgba(255, 140, 0, 0.8) 50%, 
+        rgba(255, 69, 0, 0.7) 100%);
+    animation: victoryGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes victoryGlow {
+    0% { 
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    }
+    100% { 
+        box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+    }
+}
+
+/* 技能使用时的角色闪光效果 */
+.battle-character.skill-cast {
+    animation: skillCastFlash 0.6s ease-in-out;
+}
+
+@keyframes skillCastFlash {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(2) drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)); }
+    100% { filter: brightness(1); }
+}
+
+/* 屏幕震动效果 */
+@keyframes screenShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI山海经启动调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .debug-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .character-card {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .character-card:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+        }
+        .character-card.selected {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🎮 AI山海经启动调试工具</h1>
+
+        <div class="debug-section">
+            <h3>🔍 系统检查</h3>
+            <div id="system-check">
+                <p>正在检查系统状态...</p>
+            </div>
+            <button class="test-button" onclick="runSystemCheck()">重新检查系统</button>
+        </div>
+
+        <div class="debug-section">
+            <h3>🎯 角色选择测试</h3>
+            <p>点击下方角色卡片测试角色选择功能：</p>
+            <div class="character-card" data-character="stickman" onclick="testCharacterSelect('stickman')">
+                <h4>木棒人</h4>
+                <p>等级: 1 | 攻击: 20 | 防御: 10</p>
+            </div>
+            <div class="character-card" data-character="shark" onclick="testCharacterSelect('shark')">
+                <h4>耐克鲨鱼</h4>
+                <p>等级: 5 | 攻击: 35 | 防御: 20</p>
+            </div>
+            <div class="character-card" data-character="coffee-ninja" onclick="testCharacterSelect('coffee-ninja')">
+                <h4>咖啡忍者</h4>
+                <p>等级: 4 | 攻击: 30 | 防御: 15</p>
+            </div>
+            <div class="character-card" data-character="ice-camel" onclick="testCharacterSelect('ice-camel')">
+                <h4>冰箱骆驼</h4>
+                <p>等级: 10 | 攻击: 40 | 防御: 35</p>
+            </div>
+            <div id="character-test-result"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>🚀 游戏启动测试</h3>
+            <button class="test-button" onclick="testGameLaunch()">测试游戏启动</button>
+            <button class="test-button" onclick="startFullGame()">启动完整游戏</button>
+            <div id="launch-test-result"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>📋 控制台日志</h3>
+            <div id="console-log" class="log"></div>
+            <button class="test-button" onclick="clearLog()">清空日志</button>
+        </div>
+
+        <div class="debug-section">
+            <h3>🔧 修复建议</h3>
+            <div id="fix-suggestions">
+                <p>如果游戏无法启动，请尝试以下解决方案：</p>
+                <ul>
+                    <li>检查浏览器控制台是否有JavaScript错误</li>
+                    <li>确保所有脚本文件都正确加载</li>
+                    <li>尝试清除浏览器缓存</li>
+                    <li>检查图片资源文件是否存在</li>
+                    <li>使用现代浏览器（Chrome、Firefox、Safari、Edge）</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let debugLog = [];
+        let gameInstance = null;
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            debugLog.push(logEntry);
+
+            const logElement = document.getElementById('console-log');
+            logElement.innerHTML += `<div style="color: ${getColorForType(type)}">${logEntry}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+
+            console.log(logEntry);
+        }
+
+        function getColorForType(type) {
+            switch(type) {
+                case 'error': return '#dc3545';
+                case 'warning': return '#ffc107';
+                case 'success': return '#28a745';
+                default: return '#6c757d';
+            }
+        }
+
+        function clearLog() {
+            debugLog = [];
+            document.getElementById('console-log').innerHTML = '';
+        }
+
+        function runSystemCheck() {
+            const checkDiv = document.getElementById('system-check');
+            let results = [];
+
+            log('开始系统检查...');
+
+            // 检查必需的类
+            const requiredClasses = ['Game', 'SaveManager', 'Equipment', 'Item', 'AudioManager'];
+            requiredClasses.forEach(className => {
+                const exists = typeof window[className] !== 'undefined';
+                results.push({
+                    name: `${className}类`,
+                    status: exists ? 'success' : 'error',
+                    message: exists ? '已加载' : '未找到'
+                });
+                log(`${className}类: ${exists ? '✅ 已加载' : '❌ 未找到'}`, exists ? 'success' : 'error');
+            });
+
+            // 检查必需的HTML元素
+            const requiredElements = ['character-select', 'game-screen', 'battle-screen', 'game-layer'];
+            requiredElements.forEach(elementId => {
+                const exists = document.getElementById(elementId) !== null;
+                results.push({
+                    name: `${elementId}元素`,
+                    status: exists ? 'success' : 'error',
+                    message: exists ? '已找到' : '未找到'
+                });
+                log(`${elementId}元素: ${exists ? '✅ 已找到' : '❌ 未找到'}`, exists ? 'success' : 'error');
+            });
+
+            // 检查关键资源
+            const requiredResources = [
+                'assets/images/木棒人.png',
+                'assets/images/耐克鲨鱼.png',
+                'assets/images/咖啡忍者.png',
+                'assets/images/冰箱骆驼.png'
+            ];
+
+            requiredResources.forEach(resource => {
+                const img = new Image();
+                img.onload = () => {
+                    results.push({
+                        name: resource,
+                        status: 'success',
+                        message: '可访问'
+                    });
+                    log(`${resource}: ✅ 可访问`, 'success');
+                };
+                img.onerror = () => {
+                    results.push({
+                        name: resource,
+                        status: 'warning',
+                        message: '无法访问'
+                    });
+                    log(`${resource}: ⚠️ 无法访问`, 'warning');
+                };
+                img.src = resource;
+            });
+
+            // 显示结果
+            setTimeout(() => {
+                let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">';
+                results.forEach(result => {
+                    html += `
+                        <div style="padding: 10px; border-radius: 5px; background: ${result.status === 'success' ? '#d4edda' : result.status === 'warning' ? '#fff3cd' : '#f8d7da'};">
+                            <strong>${result.name}</strong><br>
+                            <span class="status ${result.status}">${result.message}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                checkDiv.innerHTML = html;
+                log('系统检查完成');
+            }, 1000);
+        }
+
+        function testCharacterSelect(characterType) {
+            log(`测试角色选择: ${characterType}`);
+
+            try {
+                // 清除之前的选中状态
+                document.querySelectorAll('.character-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+
+                // 添加选中状态
+                const selectedCard = document.querySelector(`[data-character="${characterType}"]`);
+                if (selectedCard) {
+                    selectedCard.classList.add('selected');
+                }
+
+                // 模拟角色选择
+                const characterData = {
+                    stickman: { name: '木棒人', level: 1 },
+                    shark: { name: '耐克鲨鱼', level: 5 },
+                    'coffee-ninja': { name: '咖啡忍者', level: 4 },
+                    'ice-camel': { name: '冰箱骆驼', level: 10 }
+                };
+
+                const data = characterData[characterType];
+                if (data) {
+                    document.getElementById('character-test-result').innerHTML = `
+                        <div class="status success">
+                            ✅ 角色选择成功: ${data.name} (等级 ${data.level})
+                        </div>
+                    `;
+                    log(`角色选择成功: ${data.name}`, 'success');
+                }
+
+            } catch (error) {
+                document.getElementById('character-test-result').innerHTML = `
+                    <div class="status error">
+                        ❌ 角色选择失败: ${error.message}
+                    </div>
+                `;
+                log(`角色选择失败: ${error.message}`, 'error');
+            }
+        }
+
+        function testGameLaunch() {
+            log('测试游戏启动流程...');
+            const resultDiv = document.getElementById('launch-test-result');
+
+            try {
+                // 测试Game类实例化
+                if (typeof Game === 'undefined') {
+                    throw new Error('Game类未定义');
+                }
+
+                // 创建游戏实例
+                gameInstance = new Game();
+                log('Game实例创建成功', 'success');
+
+                // 检查关键属性
+                const keyProperties = ['saveManager', 'equipmentSystem', 'audioManager'];
+                keyProperties.forEach(prop => {
+                    const exists = gameInstance[prop] !== null;
+                    log(`${prop}: ${exists ? '✅ 已初始化' : '❌ 未初始化'}`, exists ? 'success' : 'warning');
+                });
+
+                resultDiv.innerHTML = `
+                    <div class="status success">
+                        ✅ 游戏启动测试通过！所有核心组件已正确初始化。
+                    </div>
+                `;
+                log('游戏启动测试完成', 'success');
+
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ 游戏启动测试失败: ${error.message}
+                    </div>
+                `;
+                log(`游戏启动测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        function startFullGame() {
+            log('启动完整游戏...');
+            try {
+                if (gameInstance) {
+                    // 模拟角色选择
+                    gameInstance.selectedCharacter = 'stickman';
+                    gameInstance.startGame();
+                    log('游戏启动成功，正在跳转到游戏界面...', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    throw new Error('游戏实例未创建，请先运行测试');
+                }
+            } catch (error) {
+                log(`启动游戏失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载完成后自动运行系统检查
+        window.addEventListener('load', () => {
+            log('🎮 AI山海经启动调试工具已加载');
+            runSystemCheck();
+        });
+
+        // 监听全局错误
+        window.addEventListener('error', (event) => {
+            log(`全局错误: ${event.message} (${event.filename}:${event.lineno})`, 'error');
+        });
+
+        // 监听未处理的Promise拒绝
+        window.addEventListener('unhandledrejection', (event) => {
+            log(`未处理的Promise拒绝: ${event.reason}`, 'error');
+        });
+    </script>
+
+    <!-- 加载游戏脚本进行测试 -->
+    <script src="save-manager.js"></script>
+    <script src="equipment-system.js"></script>
+    <script src="audio-manager.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

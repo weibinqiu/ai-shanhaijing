@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI山海经 - 简化测试版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .character-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+        }
+        .character-card.stickman {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+        }
+        .character-card.shark {
+            background: linear-gradient(135deg, #4682B4 0%, #1E90FF 100%);
+        }
+        .character-card.coffee-ninja {
+            background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
+        }
+        .character-card.ice-camel {
+            background: linear-gradient(135deg, #00CED1 0%, #20B2AA 100%);
+        }
+        .character-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .character-level {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        .character-stats {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .abilities {
+            margin-bottom: 15px;
+        }
+        .ability {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            margin: 2px;
+        }
+        .select-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .select-btn:hover {
+            background: white;
+            color: #333;
+        }
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .game-world {
+            background: #2d3748;
+            color: white;
+            padding: 50px;
+            border-radius: 10px;
+            text-align: center;
+            min-height: 400px;
+        }
+        .console-log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .back-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 AI山海经 - 简化测试版</h1>
+        <p style="text-align: center; color: #666;">此版本使用简化的Game类，专门测试角色选择和游戏进入功能</p>
+
+        <!-- 角色选择界面 -->
+        <div id="character-select" class="screen active">
+            <div class="character-grid">
+                <div class="character-card stickman" data-character="stickman">
+                    <div class="character-name">木棒人</div>
+                    <div class="character-level">等级: 1</div>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span>攻击力:</span>
+                            <span>20</span>
+                        </div>
+                        <div class="stat">
+                            <span>防御力:</span>
+                            <span>10</span>
+                        </div>
+                        <div class="stat">
+                            <span>速度:</span>
+                            <span>12</span>
+                        </div>
+                    </div>
+                    <div class="abilities">
+                        <span class="ability">木棒攻击</span>
+                        <span class="ability">快速移动</span>
+                        <span class="ability">闪避</span>
+                    </div>
+                    <button class="select-btn">选择木棒人</button>
+                </div>
+
+                <div class="character-card shark" data-character="shark">
+                    <div class="character-name">耐克鲨鱼</div>
+                    <div class="character-level">等级: 5</div>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span>攻击力:</span>
+                            <span>35</span>
+                        </div>
+                        <div class="stat">
+                            <span>防御力:</span>
+                            <span>25</span>
+                        </div>
+                        <div class="stat">
+                            <span>速度:</span>
+                            <span>10</span>
+                        </div>
+                    </div>
+                    <div class="abilities">
+                        <span class="ability">鲨鱼咬击</span>
+                        <span class="ability">高速冲击</span>
+                        <span class="ability">耐克加速</span>
+                    </div>
+                    <button class="select-btn">选择耐克鲨鱼</button>
+                </div>
+
+                <div class="character-card coffee-ninja" data-character="coffee-ninja">
+                    <div class="character-name">咖啡忍者</div>
+                    <div class="character-level">等级: 4</div>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span>攻击力:</span>
+                            <span>30</span>
+                        </div>
+                        <div class="stat">
+                            <span>防御力:</span>
+                            <span>18</span>
+                        </div>
+                        <div class="stat">
+                            <span>速度:</span>
+                            <span>11</span>
+                        </div>
+                    </div>
+                    <div class="abilities">
+                        <span class="ability">咖啡飞镖</span>
+                        <span class="ability">瞬移</span>
+                        <span class="ability">咖啡因爆发</span>
+                    </div>
+                    <button class="select-btn">选择咖啡忍者</button>
+                </div>
+
+                <div class="character-card ice-camel" data-character="ice-camel">
+                    <div class="character-name">冰箱骆驼</div>
+                    <div class="character-level">等级: 10</div>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span>攻击力:</span>
+                            <span>18</span>
+                        </div>
+                        <div class="stat">
+                            <span>防御力:</span>
+                            <span>35</span>
+                        </div>
+                        <div class="stat">
+                            <span>速度:</span>
+                            <span>8</span>
+                        </div>
+                    </div>
+                    <div class="abilities">
+                        <span class="ability">骆驼吐沙</span>
+                        <span class="ability">冰冻</span>
+                        <span class="ability">冰箱护盾</span>
+                    </div>
+                    <button class="select-btn">选择冰箱骆驼</button>
+                </div>
+            </div>
+
+            <div class="status" id="status">
+                请选择一个角色开始游戏
+            </div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <div id="game-screen" class="screen">
+            <div class="game-world">
+                <div id="game-layer">
+                    <!-- 游戏内容将在这里动态生成 -->
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="back-btn" onclick="backToCharacterSelect()">返回角色选择</button>
+            </div>
+        </div>
+
+        <div class="console-log" id="console-log">
+            <div style="color: #48bb78;">[简化测试版] 控制台已初始化</div>
+            <div style="color: #e2e8f0;">等待测试操作...</div>
+        </div>
+    </div>
+
+    <!-- 引用简化的游戏文件 -->
+    <script src="game-simple.js"></script>
+
+    <script>
+        const consoleLog = document.getElementById('console-log');
+        const status = document.getElementById('status');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f56565' : type === 'success' ? '#48bb78' : type === 'warning' ? '#ed8936' : '#e2e8f0';
+            const logDiv = document.createElement('div');
+            logDiv.style.color = color;
+            logDiv.innerHTML = `[${timestamp}] ${message}`;
+            consoleLog.appendChild(logDiv);
+            consoleLog.scrollTop = consoleLog.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function updateStatus(message, type = 'info') {
+            status.textContent = message;
+            const colors = {
+                'info': '#f8f9fa',
+                'success': '#d4edda',
+                'error': '#f8d7da',
+                'warning': '#fff3cd'
+            };
+            const textColors = {
+                'info': '#0c5460',
+                'success': '#155724',
+                'error': '#721c24',
+                'warning': '#856404'
+            };
+            status.style.background = colors[type] || colors.info;
+            status.style.color = textColors[type] || textColors.info;
+        }
+
+        function backToCharacterSelect() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('character-select').classList.add('active');
+            if (window.game) {
+                window.game.gameRunning = false;
+            }
+            log('返回角色选择界面', 'info');
+            updateStatus('请选择一个角色开始游戏');
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', function() {
+            log('页面加载完成', 'success');
+
+            // 检查Game类是否加载
+            if (typeof Game !== 'undefined') {
+                log('✅ Game类已加载', 'success');
+                updateStatus('游戏已准备就绪，请选择角色', 'success');
+            } else {
+                log('❌ Game类未加载', 'error');
+                updateStatus('错误: 游戏文件未加载', 'error');
+            }
+
+            // 检查DOM元素
+            const characterSelect = document.getElementById('character-select');
+            const gameScreen = document.getElementById('game-screen');
+            const gameLayer = document.getElementById('game-layer');
+
+            if (characterSelect && gameScreen && gameLayer) {
+                log('✅ 所有游戏DOM元素都存在', 'success');
+            } else {
+                log('❌ 部分DOM元素缺失', 'error');
+                log(`character-select: ${!!characterSelect}`, 'info');
+                log(`game-screen: ${!!gameScreen}`, 'info');
+                log(`game-layer: ${!!gameLayer}`, 'info');
+            }
+        });
+
+        // 监听全局错误
+        window.addEventListener('error', function(event) {
+            log(`❌ 全局错误: ${event.message} (${event.filename}:${event.lineno})`, 'error');
+            updateStatus('发生错误，请查看控制台', 'error');
+        });
+
+        // 监听未处理的Promise拒绝
+        window.addEventListener('unhandledrejection', function(event) {
+            log(`❌ Promise错误: ${event.reason}`, 'error');
+            updateStatus('发生异步错误，请查看控制台', 'error');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>战斗界面测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #000;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        #battle-screen {
+            display: none;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        
+        .battle-scene {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+        }
+        
+        .battle-player-area,
+        .battle-enemy-area {
+            width: 300px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .battle-character {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .player-battle-character {
+            border-color: rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+        
+        .enemy-battle-character {
+            border-color: rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+        }
+        
+        .battle-character-image {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+        }
+        
+        .battle-health-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        
+        .battle-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa44, #44ff44);
+            transition: width 0.3s ease;
+        }
+        
+        .battle-health-text {
+            text-align: center;
+            margin-top: 5px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .battle-character-name {
+            margin-top: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .battle-ui {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .battle-skill-bar {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .battle-skill-slot {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .battle-skill-slot:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .battle-skill-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .battle-skill-key {
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .battle-skill-name {
+            color: white;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        
+        .battle-info {
+            color: white;
+            text-align: center;
+        }
+        
+        .battle-log {
+            height: 60px;
+            width: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        
+        .battle-turn-indicator {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 2000;
+        }
+        
+        .test-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        
+        .test-btn:hover {
+            background: #45a049;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 2000;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 测试控制 -->
+    <div class="test-controls">
+        <button class="test-btn" onclick="showBattleScreen()">显示战斗界面</button>
+        <button class="test-btn" onclick="hideBattleScreen()">隐藏战斗界面</button>
+        <button class="test-btn" onclick="testBattleElements()">测试战斗元素</button>
+    </div>
+    
+    <!-- 调试信息 -->
+    <div class="debug-info" id="debug-info">
+        <h3>调试信息</h3>
+        <div id="debug-content">等待测试...</div>
+    </div>
+    
+    <!-- 战斗界面 -->
+    <div id="battle-screen" class="screen">
+        <div class="battle-scene">
+            <!-- 玩家区域 -->
+            <div class="battle-player-area">
+                <div class="battle-character player-battle-character">
+                    <div class="battle-character-image">🚶</div>
+                    <div class="battle-health-bar">
+                        <div class="battle-health-fill" style="width: 100%;"></div>
+                        <div class="battle-health-text">100/100</div>
+                    </div>
+                    <div class="battle-character-name">玩家</div>
+                </div>
+            </div>
+            
+            <!-- 敌人区域 -->
+            <div class="battle-enemy-area">
+                <div class="battle-character enemy-battle-character">
+                    <div class="battle-character-image">👹</div>
+                    <div class="battle-health-bar">
+                        <div class="battle-health-fill" style="width: 100%;"></div>
+                        <div class="battle-health-text">100/100</div>
+                    </div>
+                    <div class="battle-character-name">敌人</div>
+                </div>
+            </div>
+            
+            <!-- 战斗UI -->
+            <div class="battle-ui">
+                <div class="battle-skill-bar">
+                    <div class="battle-skill-slot" onclick="useSkill(0)">
+                        <div class="battle-skill-icon">🥊</div>
+                        <div class="battle-skill-key">J</div>
+                        <div class="battle-skill-name">技能1</div>
+                    </div>
+                    <div class="battle-skill-slot" onclick="useSkill(1)">
+                        <div class="battle-skill-icon">💨</div>
+                        <div class="battle-skill-key">K</div>
+                        <div class="battle-skill-name">技能2</div>
+                    </div>
+                    <div class="battle-skill-slot" onclick="useSkill(2)">
+                        <div class="battle-skill-icon">🛡️</div>
+                        <div class="battle-skill-key">L</div>
+                        <div class="battle-skill-name">技能3</div>
+                    </div>
+                </div>
+                
+                <div class="battle-info">
+                    <div class="battle-log" id="battle-log">战斗开始！<br></div>
+                    <div class="battle-turn-indicator">你的回合</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 调试信息更新
+        function updateDebugInfo(message) {
+            const debugContent = document.getElementById('debug-content');
+            const timestamp = new Date().toLocaleTimeString();
+            debugContent.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
+        
+        // 显示战斗界面
+        function showBattleScreen() {
+            const battleScreen = document.getElementById('battle-screen');
+            battleScreen.style.display = 'block';
+            battleScreen.style.visibility = 'visible';
+            battleScreen.style.opacity = '1';
+            battleScreen.style.zIndex = '9999';
+            updateDebugInfo('战斗界面已显示');
+        }
+        
+        // 隐藏战斗界面
+        function hideBattleScreen() {
+            const battleScreen = document.getElementById('battle-screen');
+            battleScreen.style.display = 'none';
+            updateDebugInfo('战斗界面已隐藏');
+        }
+        
+        // 测试战斗元素
+        function testBattleElements() {
+            const elements = {
+                battleScreen: document.getElementById('battle-screen'),
+                battleScene: document.querySelector('.battle-scene'),
+                playerArea: document.querySelector('.battle-player-area'),
+                enemyArea: document.querySelector('.battle-enemy-area'),
+                playerCharacter: document.querySelector('.player-battle-character'),
+                enemyCharacter: document.querySelector('.enemy-battle-character'),
+                battleUI: document.querySelector('.battle-ui')
+            };
+            
+            let elementStatus = [];
+            for (let [name, element] of Object.entries(elements)) {
+                elementStatus.push(`${name}: ${element ? '✓' : '✗'}`);
+            }
+            
+            updateDebugInfo('元素检查结果:<br>' + elementStatus.join('<br>'));
+            
+            // 检查显示状态
+            const battleScreen = document.getElementById('battle-screen');
+            updateDebugInfo(`战斗界面显示状态: ${battleScreen.style.display}`);
+            updateDebugInfo(`战斗界面可见性: ${battleScreen.style.visibility}`);
+            updateDebugInfo(`战斗界面透明度: ${battleScreen.style.opacity}`);
+        }
+        
+        // 使用技能
+        function useSkill(skillIndex) {
+            const skills = ['木棒攻击', '快速移动', '闪避'];
+            const skill = skills[skillIndex];
+            const battleLog = document.getElementById('battle-log');
+            
+            battleLog.innerHTML += `你使用了 ${skill}！<br>`;
+            battleLog.scrollTop = battleLog.scrollHeight;
+            
+            updateDebugInfo(`使用技能: ${skill}`);
+        }
+        
+        // 键盘事件
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'j') useSkill(0);
+            if (e.key.toLowerCase() === 'k') useSkill(1);
+            if (e.key.toLowerCase() === 'l') useSkill(2);
+            if (e.key.toLowerCase() === 'b') showBattleScreen();
+            if (e.key.toLowerCase() === 'h') hideBattleScreen();
+        });
+        
+        // 初始化
+        updateDebugInfo('测试页面已加载');
+        updateDebugInfo('快捷键: B-显示战斗界面, H-隐藏战斗界面, J/K/L-使用技能');
+    </script>
+</body>
+</html>

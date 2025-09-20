@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>AI山海经 - 手机版</title>
+    <style>
+        /* 移动端基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* 游戏容器 */
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 游戏区域 */
+        #game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        /* 控制区域 */
+        #controls-area {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        /* 虚拟摇杆 */
+        #joystick-container {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            width: 120px;
+            height: 120px;
+        }
+
+        #joystick-base {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #joystick-stick {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            transition: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 技能按钮 */
+        #skills-container {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skill-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .skill-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .skill-btn .skill-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .skill-btn .skill-key {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .skill-btn.cooldown {
+            opacity: 0.5;
+        }
+
+        .skill-btn.cooldown::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+        }
+
+        /* 状态栏 */
+        #status-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 100;
+        }
+
+        #health-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        #health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa44, #44ff44);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        #level-display {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* 角色选择界面 */
+        #character-select {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .character-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .character-subtitle {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .character-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .character-card:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .character-avatar {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .character-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .character-stats {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* 加载屏幕 */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        /* 游戏画面 */
+        #game-world {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .character {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.1s ease;
+        }
+
+        .player {
+            background: #4CAF50;
+            z-index: 10;
+        }
+
+        .monster {
+            background: #f44336;
+            z-index: 5;
+        }
+
+        .npc {
+            background: #2196F3;
+            z-index: 5;
+        }
+
+        /* 浮动文字 */
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 100;
+            animation: float-up 1s ease-out forwards;
+        }
+
+        @keyframes float-up {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        /* 设置按钮 */
+        #settings-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            z-index: 101;
+        }
+
+        /* 横屏提示 */
+        #landscape-notice {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            font-size: 18px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            #landscape-notice {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载屏幕 -->
+    <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+    </div>
+
+    <!-- 横屏提示 -->
+    <div id="landscape-notice">
+        <div>
+            <div>📱</div>
+            <div>请竖直握持手机以获得最佳游戏体验</div>
+        </div>
+    </div>
+
+    <!-- 角色选择界面 -->
+    <div id="character-select">
+        <h1 class="character-title">AI山海经</h1>
+        <p class="character-subtitle">选择你的角色</p>
+        <div class="character-grid">
+            <div class="character-card" data-character="stickman">
+                <div class="character-avatar">🚶</div>
+                <div class="character-name">木棒人</div>
+                <div class="character-stats">攻:70 防:50 速:85</div>
+            </div>
+            <div class="character-card" data-character="shark">
+                <div class="character-avatar">🦈</div>
+                <div class="character-name">耐克鲨鱼</div>
+                <div class="character-stats">攻:95 防:80 速:90</div>
+            </div>
+            <div class="character-card" data-character="coffee-ninja">
+                <div class="character-avatar">🥷</div>
+                <div class="character-name">咖啡忍者</div>
+                <div class="character-stats">攻:85 防:65 速:90</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div id="game-container" style="display: none;">
+        <!-- 状态栏 -->
+        <div id="status-bar">
+            <div id="level-display">Lv.1</div>
+            <div id="health-bar">
+                <div id="health-fill"></div>
+            </div>
+            <div id="health-text">100/100</div>
+        </div>
+
+        <!-- 设置按钮 -->
+        <div id="settings-btn">⚙️</div>
+
+        <!-- 游戏区域 -->
+        <div id="game-area">
+            <div id="game-world"></div>
+        </div>
+
+        <!-- 控制区域 -->
+        <div id="controls-area">
+            <!-- 虚拟摇杆 -->
+            <div id="joystick-container">
+                <div id="joystick-base">
+                    <div id="joystick-stick"></div>
+                </div>
+            </div>
+
+            <!-- 技能按钮 -->
+            <div id="skills-container">
+                <div class="skill-btn" data-skill="1">
+                    <div class="skill-icon">🥊</div>
+                    <div class="skill-key">J</div>
+                </div>
+                <div class="skill-btn" data-skill="2">
+                    <div class="skill-icon">💨</div>
+                    <div class="skill-key">K</div>
+                </div>
+                <div class="skill-btn" data-skill="3">
+                    <div class="skill-icon">🛡️</div>
+                    <div class="skill-key">L</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 移动端游戏逻辑
+        class MobileGame {
+            constructor() {
+                this.gameContainer = document.getElementById('game-container');
+                this.gameArea = document.getElementById('game-area');
+                this.gameWorld = document.getElementById('game-world');
+                this.characterSelect = document.getElementById('character-select');
+                this.loadingScreen = document.getElementById('loading-screen');
+                
+                this.player = null;
+                this.gameRunning = false;
+                this.currentScreen = 'character-select';
+                
+                this.joystickActive = false;
+                this.joystickAngle = 0;
+                this.joystickDistance = 0;
+                
+                this.skillCooldowns = {};
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.hideLoadingScreen();
+            }
+
+            hideLoadingScreen() {
+                setTimeout(() => {
+                    this.loadingScreen.style.display = 'none';
+                }, 1000);
+            }
+
+            setupEventListeners() {
+                // 角色选择
+                document.querySelectorAll('.character-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const character = card.dataset.character;
+                        this.selectCharacter(character);
+                    });
+                });
+
+                // 虚拟摇杆
+                this.setupJoystick();
+
+                // 技能按钮
+                this.setupSkillButtons();
+
+                // 设置按钮
+                document.getElementById('settings-btn').addEventListener('click', () => {
+                    this.showSettings();
+                });
+
+                // 防止页面滚动
+                document.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+
+                // 防止缩放
+                document.addEventListener('gesturestart', (e) => {
+                    e.preventDefault();
+                });
+
+                document.addEventListener('gesturechange', (e) => {
+                    e.preventDefault();
+                });
+            }
+
+            setupJoystick() {
+                const joystickContainer = document.getElementById('joystick-container');
+                const joystickBase = document.getElementById('joystick-base');
+                const joystickStick = document.getElementById('joystick-stick');
+
+                const handleStart = (e) => {
+                    this.joystickActive = true;
+                    joystickBase.style.background = 'rgba(255, 255, 255, 0.2)';
+                    this.updateJoystick(e);
+                };
+
+                const handleMove = (e) => {
+                    if (!this.joystickActive) return;
+                    this.updateJoystick(e);
+                };
+
+                const handleEnd = () => {
+                    this.joystickActive = false;
+                    joystickBase.style.background = 'rgba(255, 255, 255, 0.1)';
+                    joystickStick.style.transform = 'translate(-50%, -50%)';
+                    this.joystickAngle = 0;
+                    this.joystickDistance = 0;
+                };
+
+                joystickContainer.addEventListener('touchstart', handleStart);
+                joystickContainer.addEventListener('touchmove', handleMove);
+                joystickContainer.addEventListener('touchend', handleEnd);
+            }
+
+            updateJoystick(e) {
+                const joystickContainer = document.getElementById('joystick-container');
+                const joystickStick = document.getElementById('joystick-stick');
+                
+                const rect = joystickContainer.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - centerX;
+                const deltaY = touch.clientY - centerY;
+                
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const maxDistance = rect.width / 2 - 20;
+                
+                const limitedDistance = Math.min(distance, maxDistance);
+                const angle = Math.atan2(deltaY, deltaX);
+                
+                const stickX = Math.cos(angle) * limitedDistance;
+                const stickY = Math.sin(angle) * limitedDistance;
+                
+                joystickStick.style.transform = `translate(calc(-50% + ${stickX}px), calc(-50% + ${stickY}px))`;
+                
+                this.joystickAngle = angle;
+                this.joystickDistance = limitedDistance / maxDistance;
+                
+                // 更新玩家移动
+                if (this.player && this.gameRunning) {
+                    this.updatePlayerMovement();
+                }
+            }
+
+            setupSkillButtons() {
+                document.querySelectorAll('.skill-btn').forEach(btn => {
+                    btn.addEventListener('touchstart', (e) => {
+                        e.preventDefault();
+                        const skill = btn.dataset.skill;
+                        this.useSkill(skill);
+                    });
+                });
+            }
+
+            selectCharacter(characterType) {
+                console.log('选择角色:', characterType);
+                
+                // 创建玩家
+                this.createPlayer(characterType);
+                
+                // 切换到游戏界面
+                this.characterSelect.style.display = 'none';
+                this.gameContainer.style.display = 'flex';
+                
+                // 开始游戏
+                this.startGame();
+            }
+
+            createPlayer(characterType) {
+                const characterData = {
+                    stickman: {
+                        name: '木棒人',
+                        health: 80,
+                        maxHealth: 80,
+                        attack: 20,
+                        defense: 10,
+                        speed: 3,
+                        skills: ['木棒攻击', '快速移动', '闪避']
+                    },
+                    shark: {
+                        name: '耐克鲨鱼',
+                        health: 120,
+                        maxHealth: 120,
+                        attack: 35,
+                        defense: 25,
+                        speed: 4,
+                        skills: ['鲨鱼咬击', '高速冲击', '耐克加速']
+                    },
+                    'coffee-ninja': {
+                        name: '咖啡忍者',
+                        health: 100,
+                        maxHealth: 100,
+                        attack: 30,
+                        defense: 18,
+                        speed: 5,
+                        skills: ['咖啡飞镖', '瞬移', '咖啡因爆发']
+                    }
+                };
+
+                const data = characterData[characterType];
+                this.player = {
+                    ...data,
+                    x: this.gameArea.offsetWidth / 2,
+                    y: this.gameArea.offsetHeight / 2,
+                    width: 40,
+                    height: 40,
+                    level: 1,
+                    direction: 'down'
+                };
+
+                this.createPlayerElement();
+                this.updateUI();
+            }
+
+            createPlayerElement() {
+                const element = document.createElement('div');
+                element.className = 'character player';
+                element.style.left = this.player.x + 'px';
+                element.style.top = this.player.y + 'px';
+                element.style.width = this.player.width + 'px';
+                element.style.height = this.player.height + 'px';
+                
+                this.gameWorld.appendChild(element);
+                this.player.element = element;
+            }
+
+            startGame() {
+                this.gameRunning = true;
+                this.spawnMonsters();
+                this.spawnNPCs();
+                this.gameLoop();
+            }
+
+            updatePlayerMovement() {
+                if (!this.player || !this.joystickActive) return;
+
+                const speed = this.player.speed;
+                const deltaX = Math.cos(this.joystickAngle) * speed * this.joystickDistance;
+                const deltaY = Math.sin(this.joystickAngle) * speed * this.joystickDistance;
+
+                this.player.x += deltaX;
+                this.player.y += deltaY;
+
+                // 边界检查
+                this.player.x = Math.max(0, Math.min(this.player.x, this.gameArea.offsetWidth - this.player.width));
+                this.player.y = Math.max(0, Math.min(this.player.y, this.gameArea.offsetHeight - this.player.height));
+
+                // 更新显示
+                this.player.element.style.left = this.player.x + 'px';
+                this.player.element.style.top = this.player.y + 'px';
+            }
+
+            spawnMonsters() {
+                for (let i = 0; i < 3; i++) {
+                    const monster = {
+                        x: Math.random() * (this.gameArea.offsetWidth - 40),
+                        y: Math.random() * (this.gameArea.offsetHeight - 40),
+                        width: 40,
+                        height: 40,
+                        health: 50,
+                        maxHealth: 50,
+                        level: 1
+                    };
+
+                    const element = document.createElement('div');
+                    element.className = 'character monster';
+                    element.style.left = monster.x + 'px';
+                    element.style.top = monster.y + 'px';
+                    element.style.width = monster.width + 'px';
+                    element.style.height = monster.height + 'px';
+                    element.textContent = '👹';
+
+                    this.gameWorld.appendChild(element);
+                    monster.element = element;
+                }
+            }
+
+            spawnNPCs() {
+                for (let i = 0; i < 3; i++) {
+                    const npc = {
+                        x: Math.random() * (this.gameArea.offsetWidth - 40),
+                        y: Math.random() * (this.gameArea.offsetHeight - 40),
+                        width: 40,
+                        height: 40,
+                        health: 30,
+                        maxHealth: 30,
+                        level: 1,
+                        type: 'npc'
+                    };
+
+                    const element = document.createElement('div');
+                    element.className = 'character npc';
+                    element.style.left = npc.x + 'px';
+                    element.style.top = npc.y + 'px';
+                    element.style.width = npc.width + 'px';
+                    element.style.height = npc.height + 'px';
+                    element.textContent = '🤖';
+
+                    this.gameWorld.appendChild(element);
+                    npc.element = element;
+                }
+            }
+
+            useSkill(skillNumber) {
+                if (this.skillCooldowns[skillNumber]) return;
+
+                console.log(`使用技能 ${skillNumber}`);
+                this.showFloatingText(this.player.x, this.player.y, `技能 ${skillNumber}!`, '#4CAF50');
+
+                // 设置冷却
+                this.skillCooldowns[skillNumber] = true;
+                const btn = document.querySelector(`[data-skill="${skillNumber}"]`);
+                btn.classList.add('cooldown');
+
+                setTimeout(() => {
+                    this.skillCooldowns[skillNumber] = false;
+                    btn.classList.remove('cooldown');
+                }, 3000);
+            }
+
+            showFloatingText(x, y, text, color = '#fff') {
+                const floatingText = document.createElement('div');
+                floatingText.className = 'floating-text';
+                floatingText.textContent = text;
+                floatingText.style.color = color;
+                floatingText.style.left = x + 'px';
+                floatingText.style.top = y + 'px';
+
+                this.gameWorld.appendChild(floatingText);
+
+                setTimeout(() => {
+                    floatingText.remove();
+                }, 1000);
+            }
+
+            updateUI() {
+                document.getElementById('level-display').textContent = `Lv.${this.player.level}`;
+                document.getElementById('health-fill').style.width = (this.player.health / this.player.maxHealth * 100) + '%';
+                document.getElementById('health-text').textContent = `${this.player.health}/${this.player.maxHealth}`;
+            }
+
+            showSettings() {
+                this.showFloatingText(this.player.x, this.player.y, '设置功能开发中...', '#FFD700');
+            }
+
+            gameLoop() {
+                if (!this.gameRunning) return;
+
+                // 简单的AI移动
+                document.querySelectorAll('.monster, .npc').forEach(element => {
+                    const x = parseFloat(element.style.left);
+                    const y = parseFloat(element.style.top);
+                    
+                    element.style.left = (x + (Math.random() - 0.5) * 2) + 'px';
+                    element.style.top = (y + (Math.random() - 0.5) * 2) + 'px';
+                });
+
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        // 启动游戏
+        window.addEventListener('DOMContentLoaded', () => {
+            new MobileGame();
+        });
+    </script>
+</body>
+</html>

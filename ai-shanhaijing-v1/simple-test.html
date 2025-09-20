@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI山海经测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .character-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+        }
+        .character-card.stickman {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+        }
+        .character-card.shark {
+            background: linear-gradient(135deg, #4682B4 0%, #1E90FF 100%);
+        }
+        .character-card.coffee-ninja {
+            background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+        .console-log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 AI山海经测试页面</h1>
+        <p>这个页面用来测试基本的游戏功能</p>
+
+        <div class="status" id="status">
+            状态：等待测试...
+        </div>
+
+        <div class="character-card stickman" data-character="stickman">
+            <h2>木棒人</h2>
+            <p>等级: 1 | 攻击: 20 | 防御: 10</p>
+        </div>
+
+        <div class="character-card shark" data-character="shark">
+            <h2>耐克鲨鱼</h2>
+            <p>等级: 5 | 攻击: 35 | 防御: 25</p>
+        </div>
+
+        <div class="character-card coffee-ninja" data-character="coffee-ninja">
+            <h2>咖啡忍者</h2>
+            <p>等级: 4 | 攻击: 30 | 防御: 18</p>
+        </div>
+
+        <div class="console-log" id="console-log"></div>
+    </div>
+
+    <!-- 角色选择音效 -->
+    <audio id="stickman-hover" preload="auto">
+        <source src="assets/sounds/木棒人.m4a" type="audio/mp4">
+    </audio>
+    <audio id="shark-hover" preload="auto">
+        <source src="assets/sounds/耐克鲨鱼.m4a" type="audio/mp4">
+    </audio>
+    <audio id="coffee-ninja-hover" preload="auto">
+        <source src="assets/sounds/咖啡忍者.m4a" type="audio/mp4">
+    </audio>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('console-log');
+            const color = type === 'error' ? '#f56565' : type === 'success' ? '#48bb78' : type === 'warning' ? '#ed8936' : '#e2e8f0';
+            logDiv.innerHTML += `<div style="color: ${color}; margin-bottom: 5px;">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = '状态：' + message;
+        }
+
+        // 音效测试
+        const sounds = {
+            stickman: document.getElementById('stickman-hover'),
+            shark: document.getElementById('shark-hover'),
+            'coffee-ninja': document.getElementById('coffee-ninja-hover')
+        };
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('页面加载完成', 'success');
+            log('当前页面地址: ' + window.location.href, 'info');
+            updateStatus('正在初始化...');
+
+            // 检查音效文件
+            Object.entries(sounds).forEach(([character, sound]) => {
+                log(`${character} 音效元素:`, 'info');
+                log(`  - 元素存在: ${sound !== null}`, 'info');
+                if (sound) {
+                    log(`  - src属性: "${sound.src}"`, 'info');
+                    log(`  - 可以播放: ${sound.canPlayType ? '是' : '否'}`, 'info');
+
+                    // 测试加载
+                    sound.addEventListener('loadeddata', () => {
+                        log(`${character} 音效文件加载成功`, 'success');
+                    });
+
+                    sound.addEventListener('error', (e) => {
+                        log(`${character} 音效文件加载失败: ${e.target.error.message}`, 'error');
+                    });
+
+                    if (sound.src) {
+                        log(`${character} 音效文件已加载`, 'success');
+                    } else {
+                        log(`${character} 音效文件未找到`, 'warning');
+                    }
+                } else {
+                    log(`${character} 音效元素未找到`, 'error');
+                }
+            });
+
+            // 设置角色卡片事件
+            const characterCards = document.querySelectorAll('.character-card');
+
+            characterCards.forEach(card => {
+                const character = card.dataset.character;
+
+                // 鼠标悬停测试
+                card.addEventListener('mouseenter', () => {
+                    log(`鼠标悬停到 ${character}`, 'info');
+                    updateStatus(`正在测试 ${character} 悬停音效...`);
+
+                    const sound = sounds[character];
+                    if (sound && sound.src) {
+                        sound.currentTime = 0;
+                        sound.play().then(() => {
+                            log(`${character} 悬停音效播放成功`, 'success');
+                            updateStatus(`${character} 音效播放成功`);
+                        }).catch(error => {
+                            log(`${character} 音效播放失败: ${error.message}`, 'error');
+                            updateStatus(`${character} 音效播放失败`);
+                        });
+                    } else {
+                        log(`${character} 没有音效文件`, 'warning');
+                        updateStatus(`${character} 没有音效文件`);
+                    }
+                });
+
+                // 点击测试
+                card.addEventListener('click', () => {
+                    log(`点击了 ${character} 角色`, 'info');
+                    updateStatus(`选择了 ${character} 角色`);
+
+                    // 添加选中效果
+                    characterCards.forEach(c => c.style.transform = 'scale(1)');
+                    card.style.transform = 'scale(1.05)';
+
+                    setTimeout(() => {
+                        log(`准备启动游戏，角色: ${character}`, 'success');
+                        updateStatus(`准备启动游戏...`);
+                    }, 500);
+                });
+
+                log(`${character} 角色卡片事件监听器设置完成`, 'success');
+            });
+
+            updateStatus('测试页面初始化完成，可以开始测试');
+            log('测试页面初始化完成', 'success');
+        });
+
+        // 监听全局错误
+        window.addEventListener('error', (event) => {
+            log(`全局错误: ${event.message}`, 'error');
+            updateStatus('发生错误');
+        });
+    </script>
+</body>
+</html>

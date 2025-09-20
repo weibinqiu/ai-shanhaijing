@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音频测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #3182ce;
+        }
+        .console-log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔊 音频系统测试页面</h1>
+        <p>这个页面专门用来测试音频播放功能</p>
+
+        <div class="status" id="status">
+            状态：等待测试...
+        </div>
+
+        <div>
+            <h3>基础音频测试</h3>
+            <button class="test-button" onclick="testBeep()">测试提示音</button>
+            <button class="test-button" onclick="testWebAudio()">测试Web Audio API</button>
+            <button class="test-button" onclick="testUserGesture()">测试用户手势解锁</button>
+        </div>
+
+        <div>
+            <h3>角色音效测试</h3>
+            <button class="test-button" onclick="testCharacterSound('stickman')">测试木棒人音效</button>
+            <button class="test-button" onclick="testCharacterSound('shark')">测试耐克鲨鱼音效</button>
+            <button class="test-button" onclick="testCharacterSound('coffee-ninja')">测试咖啡忍者音效</button>
+        </div>
+
+        <div class="console-log" id="console-log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('console-log');
+            const color = type === 'error' ? '#f56565' : type === 'success' ? '#48bb78' : type === 'warning' ? '#ed8936' : '#e2e8f0';
+            logDiv.innerHTML += `<div style="color: ${color}; margin-bottom: 5px;">[${timestamp}] ${type.toUpperCase()}: ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = '状态：' + message;
+        }
+
+        // 全局变量
+        let audioContext = null;
+        let userInteracted = false;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            log('页面加载完成', 'success');
+            log('当前页面地址: ' + window.location.href, 'info');
+            updateStatus('页面初始化完成');
+
+            // 检查浏览器音频支持
+            checkAudioSupport();
+
+            // 添加用户交互监听
+            document.addEventListener('click', unlockAudio, { once: true });
+            document.addEventListener('keydown', unlockAudio, { once: true });
+        });
+
+        function checkAudioSupport() {
+            log('检查浏览器音频支持...', 'info');
+
+            // 检查HTML5 Audio
+            const Audio = window.Audio || window.webkitAudio;
+            if (Audio) {
+                log('HTML5 Audio 支持', 'success');
+            } else {
+                log('HTML5 Audio 不支持', 'error');
+            }
+
+            // 检查Web Audio API
+            if (window.AudioContext || window.webkitAudioContext) {
+                log('Web Audio API 支持', 'success');
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    log('AudioContext 创建成功', 'success');
+                    log(`AudioContext 状态: ${audioContext.state}`, 'info');
+                } catch (error) {
+                    log(`AudioContext 创建失败: ${error.message}`, 'error');
+                }
+            } else {
+                log('Web Audio API 不支持', 'warning');
+            }
+
+            updateStatus('音频支持检查完成');
+        }
+
+        function unlockAudio() {
+            if (!userInteracted) {
+                userInteracted = true;
+                log('用户交互检测到，音频已解锁', 'success');
+
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        log('AudioContext 已恢复', 'success');
+                        updateStatus('音频已解锁，可以测试');
+                    });
+                }
+            }
+        }
+
+        function testBeep() {
+            log('测试提示音...', 'info');
+            updateStatus('正在播放提示音');
+
+            try {
+                // 创建一个简单的提示音
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.type = 'sine';
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+
+                log('提示音播放成功', 'success');
+                updateStatus('提示音播放成功');
+            } catch (error) {
+                log(`提示音播放失败: ${error.message}`, 'error');
+                updateStatus('提示音播放失败');
+            }
+        }
+
+        function testWebAudio() {
+            log('测试Web Audio API...', 'info');
+            updateStatus('正在测试Web Audio API');
+
+            if (!audioContext) {
+                log('AudioContext 未初始化', 'error');
+                updateStatus('AudioContext 未初始化');
+                return;
+            }
+
+            try {
+                // 创建一个更复杂的音效
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+
+                oscillator.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1000, audioContext.currentTime);
+
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.2);
+
+                log('Web Audio API 测试成功', 'success');
+                updateStatus('Web Audio API 测试成功');
+            } catch (error) {
+                log(`Web Audio API 测试失败: ${error.message}`, 'error');
+                updateStatus('Web Audio API 测试失败');
+            }
+        }
+
+        function testUserGesture() {
+            log('测试用户手势解锁...', 'info');
+            updateStatus('正在测试用户手势解锁');
+
+            // 尝试播放一个无声音频来解锁
+            const unlockAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmFgU7k9n1unEiBC13yO/eizEIHWq+8+OWTA0OTqfPvu2IaBTGH0fPTgjMGHm7A7+OZURE');
+            unlockAudio.volume = 0;
+
+            unlockAudio.play().then(() => {
+                log('用户手势解锁成功', 'success');
+                updateStatus('用户手势解锁成功');
+                unlockAudio.remove();
+            }).catch(error => {
+                log(`用户手势解锁失败: ${error.message}`, 'error');
+                updateStatus('用户手势解锁失败');
+            });
+        }
+
+        function testCharacterSound(character) {
+            log(`测试 ${character} 音效...`, 'info');
+            updateStatus(`正在测试 ${character} 音效`);
+
+            // 尝试加载外部音效文件
+            const audio = new Audio(`assets/sounds/${getCharacterFileName(character)}.m4a`);
+
+            audio.addEventListener('loadeddata', () => {
+                log(`${character} 音效文件加载成功`, 'success');
+            });
+
+            audio.addEventListener('error', (e) => {
+                log(`${character} 音效文件加载失败: ${e.target.error.message}`, 'warning');
+                log('使用Web Audio API生成替代音效', 'info');
+                playCharacterWebAudio(character);
+            });
+
+            audio.play().then(() => {
+                log(`${character} 音效播放成功`, 'success');
+                updateStatus(`${character} 音效播放成功`);
+            }).catch(error => {
+                log(`${character} 音效播放失败: ${error.message}`, 'warning');
+                log('使用Web Audio API生成替代音效', 'info');
+                playCharacterWebAudio(character);
+            });
+        }
+
+        function getCharacterFileName(character) {
+            const fileNames = {
+                'stickman': '木棒人',
+                'shark': '耐克鲨鱼',
+                'coffee-ninja': '咖啡忍者'
+            };
+            return fileNames[character] || character;
+        }
+
+        function playCharacterWebAudio(character) {
+            if (!audioContext) {
+                log('AudioContext 未初始化', 'error');
+                return;
+            }
+
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // 为不同角色设置不同的音效
+                const frequencies = {
+                    'stickman': 440,
+                    'shark': 200,
+                    'coffee-ninja': 800
+                };
+
+                const types = {
+                    'stickman': 'sine',
+                    'shark': 'sawtooth',
+                    'coffee-ninja': 'square'
+                };
+
+                oscillator.frequency.setValueAtTime(frequencies[character] || 440, audioContext.currentTime);
+                oscillator.type = types[character] || 'sine';
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+
+                log(`${character} Web Audio 音效播放成功`, 'success');
+                updateStatus(`${character} 音效播放成功（Web Audio API）`);
+            } catch (error) {
+                log(`${character} Web Audio 音效播放失败: ${error.message}`, 'error');
+                updateStatus(`${character} 音效播放失败`);
+            }
+        }
+
+        // 监听全局错误
+        window.addEventListener('error', (event) => {
+            log(`全局错误: ${event.message}`, 'error');
+        });
+    </script>
+</body>
+</html>

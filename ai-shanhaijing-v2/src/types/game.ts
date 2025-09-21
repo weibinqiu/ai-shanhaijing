@@ -40,6 +40,8 @@ export interface MonsterState extends CharacterState {
   aiState: 'idle' | 'chasing' | 'attacking' | 'fleeing';
   lastPlayerSighting: Vector2D | null;
   patrolTarget: Vector2D | null;
+  attackCooldown: number;
+  lastAttackTime: number;
 }
 
 export interface ItemState {
@@ -139,4 +141,80 @@ export interface Animation {
   currentFrame: number;
   currentTime: number;
   isPlaying: boolean;
+}
+
+// 战斗系统类型
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  damage: number;
+  manaCost: number;
+  cooldown: number;
+  currentCooldown: number;
+  type: 'attack' | 'defense' | 'heal' | 'special';
+  animation: string;
+  effects: SkillEffect[];
+}
+
+export interface SkillEffect {
+  type: 'damage' | 'heal' | 'buff' | 'debuff';
+  value: number;
+  duration?: number;
+  target: 'self' | 'enemy' | 'all';
+}
+
+export interface BattleCharacter {
+  id: string;
+  name: string;
+  type: 'player' | 'enemy';
+  position: Vector2D;
+  stats: CharacterStats;
+  skills: Skill[];
+  currentHp: number;
+  currentMp: number;
+  statusEffects: StatusEffect[];
+  isAlive: boolean;
+  sprite: string;
+}
+
+export interface StatusEffect {
+  id: string;
+  name: string;
+  type: 'buff' | 'debuff';
+  value: number;
+  duration: number;
+  remainingTime: number;
+}
+
+export interface BattleState {
+  playerTeam: BattleCharacter[];
+  enemyTeam: BattleCharacter[];
+  currentTurn: 'player' | 'enemy';
+  turnPhase: 'selecting' | 'acting' | 'animating' | 'ended';
+  selectedCharacter: BattleCharacter | null;
+  selectedSkill: Skill | null;
+  targetCharacter: BattleCharacter | null;
+  battleLog: BattleLogEntry[];
+  round: number;
+  winner: 'player' | 'enemy' | null;
+}
+
+export interface BattleLogEntry {
+  id: string;
+  message: string;
+  type: 'action' | 'damage' | 'heal' | 'status' | 'system';
+  timestamp: number;
+}
+
+export interface BattleAction {
+  id: string;
+  type: 'attack' | 'skill' | 'defend' | 'item';
+  actor: BattleCharacter;
+  target?: BattleCharacter;
+  skill?: Skill;
+  damage?: number;
+  healing?: number;
+  critical: boolean;
+  effectiveness: 'normal' | 'effective' | 'resisted';
 }

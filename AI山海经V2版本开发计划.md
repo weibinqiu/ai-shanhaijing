@@ -48,6 +48,33 @@
 - Canvas 2D API
 - Pinia (状态管理)
 - Vue Router (路由管理)
+```
+
+### AI系统架构 (已完成)
+```typescript
+// AI系统核心组件
+- AIPerception: 环境感知系统
+- AIDecision: 决策系统
+- MonsterAI: AI核心控制器
+- BaseMonster: 怪物基类
+- MonsterSpawner: 怪物生成器
+```
+
+### 怪物类型系统 (已完成)
+```typescript
+// 已实现怪物类型
+- SlimeMonster: 史莱姆（基础怪物）
+- GoblinMonster: 哥布林（普通怪物）
+- OrcMonster: 兽人（精英怪物）
+- BossMonster: Boss（首领怪物）
+```
+
+### AI行为特性 (已完成)
+- 智能感知：根据怪物类型具有不同的感知范围
+- 状态机：idle → chasing → attacking
+- 追踪行为：怪物会追踪玩家并在攻击范围内攻击
+- 特殊能力：哥布林狂暴、兽人重击、Boss阶段转换
+- 自动生成：安全区检测和智能生成位置
 - Vite (构建工具)
 ```
 

@@ -2,22 +2,104 @@
 import { ref, onMounted } from 'vue';
 import CharacterSelect from '@/components/game/CharacterSelect.vue';
 import GameCanvas from '@/components/game/GameCanvas.vue';
+import BattleScene from '@/components/game/BattleScene.vue';
 import type { Component } from 'vue';
 
 // 游戏状态
-const currentScreen = ref<'character-select' | 'game'>('character-select');
+const currentScreen = ref<'character-select' | 'game' | 'battle'>('character-select');
 const selectedCharacter = ref<string>('');
 const characterData = ref<any>(null);
+const battleEnemies = ref<any[]>([]);
 
 // 组件引用
 const characterSelectRef = ref<InstanceType<typeof CharacterSelect> | null>(null);
 const gameCanvasRef = ref<InstanceType<typeof GameCanvas> | null>(null);
+const battleSceneRef = ref<InstanceType<typeof BattleScene> | null>(null);
 
 // 生命周期
 onMounted(() => {
   // 初始化游戏
   console.log('AI山海经V2 - 游戏初始化');
+
+  // 监听战斗触发事件
+  window.addEventListener('battle-triggered', handleBattleTriggered);
 });
+
+// 战斗触发处理
+const handleBattleTriggered = (event: any) => {
+  console.log('App: 战斗触发', event.detail);
+
+  // 将游戏中的怪物数据转换为战斗角色数据
+  const enemies = event.detail.enemies.map((monster: any) => {
+    const monsterState = monster.getMonsterState();
+    return {
+      id: monsterState.id,
+      name: monsterState.name,
+      type: 'enemy' as const,
+      position: { x: 1000, y: 300 + Math.random() * 200 },
+      stats: {
+        hp: monsterState.stats.hp,
+        maxHp: monsterState.stats.maxHp,
+        attack: monsterState.stats.attack,
+        defense: monsterState.stats.defense,
+        speed: monsterState.stats.speed,
+        level: monsterState.stats.level,
+        exp: 0
+      },
+      skills: [
+        {
+          id: 'enemy-attack',
+          name: '普通攻击',
+          description: '基础攻击',
+          damage: monsterState.stats.attack,
+          manaCost: 0,
+          cooldown: 0,
+          currentCooldown: 0,
+          type: 'attack' as const,
+          animation: 'attack',
+          effects: [
+            {
+              type: 'damage',
+              value: monsterState.stats.attack,
+              target: 'enemy'
+            }
+          ]
+        }
+      ],
+      currentHp: monsterState.stats.hp,
+      currentMp: 20,
+      statusEffects: [],
+      isAlive: true,
+      sprite: monsterState.type
+    };
+  });
+
+  battleEnemies.value = enemies;
+  currentScreen.value = 'battle';
+};
+
+// 战斗结束处理
+const handleBattleEnded = (result: 'victory' | 'defeat') => {
+  console.log('App: 战斗结束', result);
+
+  // 通知游戏引擎战斗结束
+  if (gameCanvasRef.value?.gameEngine) {
+    gameCanvasRef.value.gameEngine.endBattle(result);
+  }
+
+  // 返回游戏界面
+  currentScreen.value = 'game';
+};
+
+// 返回游戏处理
+const handleReturnToGame = () => {
+  currentScreen.value = 'game';
+
+  // 通知游戏引擎战斗结束（默认失败）
+  if (gameCanvasRef.value?.gameEngine) {
+    gameCanvasRef.value.gameEngine.endBattle('defeat');
+  }
+};
 
 // 角色选择
 const handleCharacterSelected = (characterId: string) => {
@@ -49,7 +131,7 @@ const handleStartGame = () => {
         const player = {
           id: 'player-1',
           type: 'player',
-          position: { x: 500, y: 500 },
+          position: { x: 100, y: 100 },
           velocity: { x: 0, y: 0 },
           stats: characterData.value.attributes,
           skills: [],
@@ -113,6 +195,18 @@ onMounted(() => {
       <div class="game-instructions">
         <p>使用 WASD 或方向键移动，鼠标点击寻路，按 ESC 返回角色选择</p>
       </div>
+    </div>
+
+    <!-- 战斗界面 -->
+    <div v-else-if="currentScreen === 'battle'" class="screen battle-screen">
+      <BattleScene
+        ref="battleSceneRef"
+        :width="1200"
+        :height="800"
+        :enemy-team="battleEnemies"
+        @battle-ended="handleBattleEnded"
+        @return-to-game="handleReturnToGame"
+      />
     </div>
 
     <!-- 加载界面 -->
@@ -264,5 +358,14 @@ body {
     font-size: 12px;
     padding: 8px 15px;
   }
+}
+
+.battle-screen {
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
 }
 </style>

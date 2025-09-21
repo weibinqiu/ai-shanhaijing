@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音效测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .sound-test {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .sound-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .sound-button:hover {
+            background: #45a049;
+        }
+        .sound-button:active {
+            transform: scale(0.98);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="sound-test">
+        <h1>🔊 AI山海经V2 音效测试</h1>
+        <p>点击下面的按钮测试各个角色的音效：</p>
+
+        <button class="sound-button" onclick="playSound('stickman')">
+            🥋 木棒人音效
+        </button>
+
+        <button class="sound-button" onclick="playSound('shark')">
+            🦈 耐克鲨鱼音效
+        </button>
+
+        <button class="sound-button" onclick="playSound('ninja')">
+            ☕ 咖啡忍者音效
+        </button>
+
+        <button class="sound-button" onclick="playSound('camel')">
+            🐪 冰箱骆驼音效
+        </button>
+
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        const soundFiles = {
+            stickman: '/sound/木棍人tungtungtungtungsahur_爱给网_aigei_com.mp3',
+            shark: '/sound/耐克鲨鱼_爱给网_aigei_com.mp3',
+            ninja: '/sound/咖啡忍者.m4a',
+            camel: '/sound/轮胎青蛙_爱给网_aigei_com.mp3'
+        };
+
+        const audioElements = {};
+
+        // 预加载音效
+        function preloadSounds() {
+            Object.entries(soundFiles).forEach(([characterId, src]) => {
+                const audio = new Audio(src);
+                audio.volume = 1.0;
+                audio.load();
+                audioElements[characterId] = audio;
+            });
+            showStatus('音效预加载完成', 'success');
+        }
+
+        // 播放音效
+        function playSound(characterId) {
+            try {
+                const audio = audioElements[characterId];
+                if (!audio) {
+                    showStatus(`未找到 ${characterId} 的音效`, 'error');
+                    return;
+                }
+
+                // 重置音频时间到开始位置
+                audio.currentTime = 0;
+
+                // 播放音效
+                const playPromise = audio.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        showStatus(`成功播放 ${characterId} 音效`, 'success');
+                    }).catch(error => {
+                        showStatus(`音频播放失败: ${error.message}`, 'error');
+                        console.log('音频播放失败:', error);
+                    });
+                }
+            } catch (error) {
+                showStatus(`音效播放出错: ${error.message}`, 'error');
+                console.error('音效播放出错:', error);
+            }
+        }
+
+        // 显示状态信息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+
+            if (type === 'error') {
+                statusDiv.style.background = '#ffeaea';
+                statusDiv.style.borderLeftColor = '#f44336';
+            } else {
+                statusDiv.style.background = '#e8f5e8';
+                statusDiv.style.borderLeftColor = '#4CAF50';
+            }
+
+            // 3秒后隐藏状态
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // 页面加载完成后预加载音效
+        window.addEventListener('load', preloadSounds);
+    </script>
+</body>
+</html>

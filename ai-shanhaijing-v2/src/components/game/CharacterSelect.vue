@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // 定义事件
 const emit = defineEmits<{
@@ -120,30 +120,9 @@ const characters = [
     }
   },
   {
-    id: 'shark',
-    name: '耐克鲨鱼',
-    title: 'Lv.1 耐克鲨鱼',
-    image: '/images/耐克鲨鱼.png',
-    stats: [
-      { label: '攻击力', value: 90 },
-      { label: '防御力', value: 80 },
-      { label: '速度', value: 70 }
-    ],
-    abilities: ['鲨鱼咬击', '高速冲击', '耐克加速'],
-    attributes: {
-      hp: 120,
-      maxHp: 120,
-      attack: 35,
-      defense: 25,
-      speed: 4,
-      level: 1,
-      exp: 0
-    }
-  },
-  {
     id: 'ninja',
     name: '咖啡忍者',
-    title: 'Lv.1 咖啡忍者',
+    title: 'Lv.4 咖啡忍者',
     image: '/images/咖啡忍者.png',
     stats: [
       { label: '攻击力', value: 80 },
@@ -157,14 +136,56 @@ const characters = [
       attack: 25,
       defense: 15,
       speed: 6,
-      level: 1,
+      level: 4,
+      exp: 0
+    }
+  },
+  {
+    id: 'shark',
+    name: '耐克鲨鱼',
+    title: 'Lv.5 耐克鲨鱼',
+    image: '/images/耐克鲨鱼.png',
+    stats: [
+      { label: '攻击力', value: 90 },
+      { label: '防御力', value: 80 },
+      { label: '速度', value: 70 }
+    ],
+    abilities: ['鲨鱼咬击', '高速冲击', '耐克加速'],
+    attributes: {
+      hp: 120,
+      maxHp: 120,
+      attack: 35,
+      defense: 25,
+      speed: 4,
+      level: 5,
+      exp: 0
+    }
+  },
+  {
+    id: 'frog',
+    name: '轮胎青蛙',
+    title: 'Lv.8 轮胎青蛙',
+    image: '/images/轮胎青蛙.png',
+    stats: [
+      { label: '攻击力', value: 85 },
+      { label: '防御力', value: 70 },
+      { label: '速度', value: 95 }
+    ],
+    abilities: ['轮胎弹跳', '青蛙冲击', '橡胶防御'],
+    attributes: {
+      hp: 100,
+      maxHp: 100,
+      attack: 30,
+      defense: 20,
+      speed: 8,
+      level: 8,
       exp: 0
     }
   },
   {
     id: 'camel',
     name: '冰箱骆驼',
-    title: 'Lv.1 冰箱骆驼',
+    title: 'Lv.10 冰箱骆驼',
     image: '/images/冰箱骆驼.png',
     stats: [
       { label: '攻击力', value: 60 },
@@ -178,7 +199,7 @@ const characters = [
       attack: 15,
       defense: 35,
       speed: 3,
-      level: 1,
+      level: 10,
       exp: 0
     }
   }
@@ -186,43 +207,84 @@ const characters = [
 
 // 状态管理
 const selectedCharacter = ref<string>('');
+const audioElements = ref<{[key: string]: HTMLAudioElement}>({});
+const audioContextInitialized = ref(false);
+
+// 初始化音频上下文
+const initAudioContext = () => {
+  if (audioContextInitialized.value) return;
+
+  // 创建一个虚拟的音频上下文来启用音频
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  audioContext.resume().then(() => {
+    audioContextInitialized.value = true;
+    console.log('音频上下文已初始化');
+  });
+};
+
+// 预加载音效
+const preloadSounds = () => {
+  const soundFiles = {
+    stickman: '/sound/木棍人tungtungtungtungsahur_爱给网_aigei_com.mp3',
+    shark: '/sound/耐克鲨鱼_爱给网_aigei_com.mp3',
+    ninja: '/sound/咖啡忍者.m4a',
+    camel: '/sound/冰箱骆驼.m4a',
+    frog: '/sound/轮胎青蛙_爱给网_aigei_com.mp3'
+  };
+
+  Object.entries(soundFiles).forEach(([characterId, src]) => {
+    const audio = new Audio(src);
+    audio.volume = 1.0;
+    audio.load();
+    audioElements.value[characterId] = audio;
+  });
+
+  console.log('音效预加载完成');
+};
 
 // 音效播放方法
 const playCharacterSound = (characterId: string) => {
-  const audio = new Audio();
+  try {
+    // 首先初始化音频上下文
+    initAudioContext();
 
-  // 根据角色ID播放对应的音效
-  switch (characterId) {
-    case 'stickman':
-      audio.src = '/sound/木棍人tungtungtungtungsahur_爱给网_aigei_com.mp3';
-      break;
-    case 'shark':
-      audio.src = '/sound/耐克鲨鱼_爱给网_aigei_com.mp3';
-      break;
-    case 'ninja':
-      audio.src = '/sound/咖啡忍者.m4a';
-      break;
-    case 'camel':
-      audio.src = '/sound/轮胎青蛙_爱给网_aigei_com.mp3';
-      break;
-    default:
-      return; // 如果没有对应的音效，直接返回
+    const audio = audioElements.value[characterId];
+    if (!audio) {
+      console.log(`未找到 ${characterId} 的音效`);
+      return;
+    }
+
+    // 重置音频时间到开始位置
+    audio.currentTime = 0;
+
+    // 播放音效
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        console.log(`成功播放 ${characterId} 音效`);
+      }).catch(error => {
+        console.log('音频播放失败:', error);
+        // 如果是自动播放策略问题，尝试在用户交互后播放
+        document.addEventListener('click', function playOnInteraction() {
+          initAudioContext();
+          audio.currentTime = 0;
+          audio.play().catch(e => console.log('重试播放失败:', e));
+          document.removeEventListener('click', playOnInteraction);
+        }, { once: true });
+      });
+    }
+  } catch (error) {
+    console.error('音效播放出错:', error);
   }
-
-  // 播放音效
-  audio.play().catch(error => {
-    console.log('音频播放失败:', error);
-  });
 };
 
 // 方法
 const selectCharacter = (characterId: string) => {
   console.log('CharacterSelect: selectCharacter called with', characterId);
 
-  // 如果是重新选择同一个角色，不播放音效
-  if (selectedCharacter.value !== characterId) {
-    playCharacterSound(characterId);
-  }
+  // 每次选择都播放音效
+  playCharacterSound(characterId);
 
   selectedCharacter.value = characterId;
   emit('character-selected', characterId);
@@ -264,6 +326,11 @@ const getParticleStyle = (index: number) => {
     '--delay': (index * 0.05) + 's'
   } as any;
 };
+
+// 组件挂载时预加载音效
+onMounted(() => {
+  preloadSounds();
+});
 
 // 导出选中的角色数据
 defineExpose({
@@ -309,10 +376,10 @@ defineExpose({
 
 .character-options {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
   margin-bottom: 40px;
-  max-width: 1200px;
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -696,6 +763,13 @@ defineExpose({
   background: linear-gradient(45deg, #FF8E8E, #FF6B6B);
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+@media (max-width: 1400px) {
+  .character-options {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
 }
 
 @media (max-width: 1200px) {

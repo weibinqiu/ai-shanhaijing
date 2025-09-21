@@ -1,7 +1,8 @@
 // 游戏引擎核心类
 
-import type { GameState, GameConfig, InputState, Vector2D } from '@/types/game';
+import type { GameState, GameConfig, InputState, Vector2D, BattleCharacter } from '@/types/game';
 import { GameUtils } from '@/utils/gameUtils';
+import { MonsterSpawner } from '../spawners/MonsterSpawner';
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -12,6 +13,10 @@ export class GameEngine {
   private lastTime: number = 0;
   private accumulator: number = 0;
   private gameLoopId: number | null = null;
+  private monsterSpawner: MonsterSpawner;
+  private inBattle: boolean = false;
+  private battleTriggerDistance: number = 100;
+  private battleCooldown: number = 0; // 战斗结束后的冷却时间
 
   constructor(canvas: HTMLCanvasElement, config: GameConfig) {
     this.canvas = canvas;
@@ -27,6 +32,7 @@ export class GameEngine {
     this.config = config;
     this.inputState = this.initializeInput();
     this.gameState = this.initializeGameState();
+    this.monsterSpawner = new MonsterSpawner();
 
     this.setupEventListeners();
     this.setupCanvasSettings();
@@ -165,6 +171,20 @@ export class GameEngine {
 
     this.gameState.gameTime += deltaTime;
 
+    // 更新战斗冷却时间
+    if (this.battleCooldown > 0) {
+      this.battleCooldown -= deltaTime;
+      if (this.battleCooldown <= 0) {
+        this.battleCooldown = 0;
+        console.log('战斗冷却时间结束');
+      }
+    }
+
+    // 检查战斗触发
+    if (!this.inBattle) {
+      this.checkBattleTrigger();
+    }
+
     // 更新相机
     this.updateCamera(deltaTime);
 
@@ -225,10 +245,11 @@ export class GameEngine {
       this.updatePlayer(this.gameState.player, deltaTime);
     }
 
-    // 更新怪物
-    this.gameState.monsters.forEach(monster => {
-      this.updateMonster(monster, deltaTime);
-    });
+    // 更新怪物生成器和怪物
+    this.monsterSpawner.update(this.gameState.player, deltaTime, this.gameState.gameTime);
+
+    // 更新游戏状态中的怪物列表
+    this.updateGameStateMonsters();
 
     // 更新道具
     this.gameState.items.forEach(item => {
@@ -341,10 +362,13 @@ export class GameEngine {
       }
     });
 
-    // 渲染怪物
-    this.gameState.monsters.forEach(monster => {
-      this.renderCharacter(monster);
+    // 渲染怪物（从生成器获取）
+    this.monsterSpawner.getAliveMonsters().forEach(monster => {
+      this.renderMonster(monster);
     });
+
+    // 渲染Boss的小怪
+    this.renderBossMinions();
 
     // 渲染玩家
     if (this.gameState.player) {
@@ -429,6 +453,103 @@ export class GameEngine {
     this.ctx.restore();
   }
 
+  /**
+   * 渲染怪物
+   */
+  private renderMonster(monster: any): void {
+    if (!monster.isAlive()) return;
+
+    this.ctx.save();
+    this.ctx.translate(monster.getPosition().x, monster.getPosition().y);
+
+    // 绘制怪物
+    this.ctx.fillStyle = monster.getColor();
+    const size = monster.getSize();
+    this.ctx.fillRect(-size/2, -size/2, size, size);
+
+    // 绘制血条
+    this.renderMonsterHealthBar(monster, size);
+
+    // 绘制等级
+    this.ctx.fillStyle = '#FFF';
+    this.ctx.font = '12px Arial';
+    this.ctx.fillText(`Lv.${monster.getMonsterState().stats.level}`, 0, -size/2 - 10);
+
+    // 绘制状态指示
+    this.renderMonsterStatus(monster, size);
+
+    this.ctx.restore();
+  }
+
+  /**
+   * 渲染怪物血条
+   */
+  private renderMonsterHealthBar(monster: any, size: number): void {
+    const monsterState = monster.getMonsterState();
+    const healthPercentage = monsterState.stats.hp / monsterState.stats.maxHp;
+    const healthBarWidth = size;
+    const healthBarHeight = 4;
+    const healthBarY = -size/2 - 20;
+
+    // 血条背景
+    this.ctx.fillStyle = '#333';
+    this.ctx.fillRect(-healthBarWidth/2, healthBarY, healthBarWidth, healthBarHeight);
+
+    // 血条填充
+    this.ctx.fillStyle = healthPercentage > 0.6 ? '#4CAF50' :
+                         healthPercentage > 0.3 ? '#FFC107' : '#F44336';
+    this.ctx.fillRect(-healthBarWidth/2, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+  }
+
+  /**
+   * 渲染怪物状态
+   */
+  private renderMonsterStatus(monster: any, size: number): void {
+    const monsterState = monster.getMonsterState();
+
+    // 根据AI状态显示不同的效果
+    if (monsterState.aiState === 'chasing') {
+      // 追踪状态 - 显示红色边框
+      this.ctx.strokeStyle = '#FF5252';
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(-size/2 - 2, -size/2 - 2, size + 4, size + 4);
+    } else if (monsterState.aiState === 'attacking') {
+      // 攻击状态 - 显示发光效果
+      this.ctx.shadowColor = '#FF5252';
+      this.ctx.shadowBlur = 10;
+      this.ctx.fillStyle = monster.getColor();
+      this.ctx.fillRect(-size/2, -size/2, size, size);
+      this.ctx.shadowBlur = 0;
+    }
+  }
+
+  /**
+   * 渲染Boss的小怪
+   */
+  private renderBossMinions(): void {
+    // 查找Boss并渲染其小怪
+    const bossMonsters = this.monsterSpawner.getMonstersByType('boss');
+
+    bossMonsters.forEach(boss => {
+      const bossMinions = (boss as any).getMinions?.() || [];
+      bossMinions.forEach((minion: any) => {
+        if (minion.isAlive()) {
+          this.renderMonster(minion);
+        }
+      });
+    });
+  }
+
+  /**
+   * 更新游戏状态中的怪物列表
+   */
+  private updateGameStateMonsters(): void {
+    // 更新游戏状态中的怪物列表（用于兼容性）
+    this.gameState.monsters = this.monsterSpawner.getAliveMonsters().map(monster => {
+      return monster.getMonsterState();
+    });
+  }
+
   private renderUI(): void {
     // 渲染游戏信息
     if (this.gameState.player) {
@@ -461,6 +582,111 @@ export class GameEngine {
       x: worldPos.x - this.gameState.camera.position.x,
       y: worldPos.y - this.gameState.camera.position.y
     };
+  }
+
+  /**
+   * 检查战斗触发
+   */
+  private checkBattleTrigger(): void {
+    if (!this.gameState.player) return;
+
+    // 如果还在战斗冷却中，不检查战斗触发
+    if (this.battleCooldown > 0) {
+      return;
+    }
+
+    const player = this.gameState.player;
+    const aliveMonsters = this.monsterSpawner.getAliveMonsters();
+
+    for (const monster of aliveMonsters) {
+      const monsterPosition = monster.getPosition();
+      const distance = GameUtils.distance(player.position, monsterPosition);
+
+      if (distance <= this.battleTriggerDistance) {
+        this.triggerBattle([monster]);
+        break;
+      }
+    }
+  }
+
+  /**
+   * 触发战斗
+   */
+  private triggerBattle(monsters: any[]): void {
+    this.inBattle = true;
+    this.gameState.gameRunning = false;
+
+    // 暂停游戏循环
+    if (this.gameLoopId) {
+      cancelAnimationFrame(this.gameLoopId);
+      this.gameLoopId = null;
+    }
+
+    // 触发战斗事件
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('battle-triggered', {
+        detail: {
+          player: this.gameState.player,
+          enemies: monsters
+        }
+      }));
+    }
+
+    console.log('战斗触发！');
+  }
+
+  /**
+   * 结束战斗
+   */
+  public endBattle(result: 'victory' | 'defeat'): void {
+    this.inBattle = false;
+    this.gameState.gameRunning = true;
+
+    // 移除被击败的怪物
+    if (result === 'victory') {
+      this.monsterSpawner.clearAllMonsters();
+    } else if (result === 'defeat') {
+      // 失败时也清除附近的怪物，避免连续触发战斗
+      this.clearNearbyMonsters();
+    }
+
+    // 设置战斗冷却时间，防止立即再次触发战斗
+    this.battleCooldown = 3.0; // 3秒冷却时间
+
+    // 重新开始游戏循环
+    this.lastTime = performance.now();
+    this.gameLoop();
+
+    console.log('战斗结束，结果：', result);
+  }
+
+  /**
+   * 清除附近的怪物
+   */
+  private clearNearbyMonsters(): void {
+    if (!this.gameState.player) return;
+
+    const player = this.gameState.player;
+    const aliveMonsters = this.monsterSpawner.getAliveMonsters();
+    const clearRadius = 200; // 清除200像素范围内的怪物
+
+    aliveMonsters.forEach(monster => {
+      const monsterPosition = monster.getPosition();
+      const distance = GameUtils.distance(player.position, monsterPosition);
+
+      if (distance <= clearRadius) {
+        this.monsterSpawner.removeMonster(monster.getMonsterState().id);
+      }
+    });
+
+    console.log('清除了附近的怪物');
+  }
+
+  /**
+   * 检查是否在战斗中
+   */
+  public isInBattle(): boolean {
+    return this.inBattle;
   }
 
   // 公共方法
@@ -496,6 +722,42 @@ export class GameEngine {
   public destroy(): void {
     this.stop();
     this.cleanupEventListeners();
+  }
+
+  // 怪物管理方法
+  public getMonsterSpawner(): MonsterSpawner {
+    return this.monsterSpawner;
+  }
+
+  public spawnBoss(position: { x: number; y: number }): void {
+    this.monsterSpawner.spawnBoss(position);
+  }
+
+  public forceSpawnMonster(type: string, position: { x: number; y: number }): void {
+    this.monsterSpawner.forceSpawn(type, position);
+  }
+
+  public clearAllMonsters(): void {
+    this.monsterSpawner.clearAllMonsters();
+  }
+
+  public getMonsterInfo(): string {
+    return this.monsterSpawner.getSpawnerInfo();
+  }
+
+  // 调试方法
+  public getDebugInfo(): string {
+    const monsterCount = this.monsterSpawner.getAliveMonsterCount();
+    const playerHealth = this.gameState.player?.stats.hp || 0;
+    const gameTime = Math.round(this.gameState.gameTime);
+
+    return `
+🎮 游戏调试信息 🎮
+游戏时间: ${gameTime}秒
+玩家生命: ${playerHealth}
+存活怪物: ${monsterCount}只
+怪物上限: ${this.monsterSpawner.getMonsterCount()}
+    `;
   }
 
   private cleanupEventListeners(): void {

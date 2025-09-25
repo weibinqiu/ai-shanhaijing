@@ -31,9 +31,75 @@ class Game {
     }
 
     selectCharacter(characterType) {
+        // 播放选择音效
+        this.playSelectSound();
+
+        // 播放角色语音
+        this.playCharacterVoice(characterType);
+
         this.selectedCharacter = characterType;
         console.log('选择角色:', characterType);
-        this.startGame();
+
+        // 显示开始游戏按钮和角色信息
+        this.showGameStartButton(characterType);
+
+        // 移除所有卡片的选中状态
+        document.querySelectorAll('.character-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+
+        // 添加选中状态到当前卡片
+        document.querySelector(`[data-character="${characterType}"]`).classList.add('selected');
+    }
+
+    // 播放选择音效
+    playSelectSound() {
+        const selectSound = document.getElementById('select-sound');
+        if (selectSound) {
+            selectSound.currentTime = 0;
+            selectSound.play().catch(error => {
+                console.log('音效播放失败:', error);
+            });
+        }
+    }
+
+    // 播放角色语音
+    playCharacterVoice(characterType) {
+        const voiceMap = {
+            'stickman': 'stickman-voice',
+            'coffee-ninja': 'coffee-ninja-voice',
+            'shark': 'shark-voice',
+            'tire-frog': 'tire-frog-voice',
+            'ice-camel': 'ice-camel-voice'
+        };
+
+        const voiceId = voiceMap[characterType];
+        if (voiceId) {
+            const voiceAudio = document.getElementById(voiceId);
+            if (voiceAudio) {
+                voiceAudio.currentTime = 0;
+                voiceAudio.play().catch(error => {
+                    console.log('语音播放失败:', error);
+                });
+            }
+        }
+    }
+
+    // 显示开始游戏按钮
+    showGameStartButton(characterType) {
+        const startBtn = document.getElementById('start-game-btn');
+
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.add('enabled');
+        }
+    }
+
+    // 开始选中的游戏
+    startSelectedGame() {
+        if (this.selectedCharacter) {
+            this.startGame();
+        }
     }
 
     startGame() {

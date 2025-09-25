@@ -46,36 +46,31 @@ const gameRunning = computed(() => gameEngine.value?.getGameState().gameRunning 
 
 // 生命周期钩子
 onMounted(() => {
+  console.log('GameCanvas: 组件挂载');
+  console.log('GameCanvas: gameCanvas.value:', gameCanvas.value);
+
   if (gameCanvas.value) {
-    gameEngine.value = new GameEngine(gameCanvas.value, config);
+    console.log('GameCanvas: 创建游戏引擎');
+    console.log('GameCanvas: 画布尺寸:', config.canvasWidth, 'x', config.canvasHeight);
 
-    // 设置初始玩家数据
-    const player = {
-      id: 'player-1',
-      type: 'player',
-      position: { x: 500, y: 500 },
-      velocity: { x: 0, y: 0 },
-      stats: {
-        hp: 100,
-        maxHp: 100,
-        attack: 20,
-        defense: 10,
-        speed: 5,
-        level: 1,
-        exp: 0
-      },
-      skills: [],
-      direction: 'down' as const,
-      isMoving: false,
-      isAlive: true
-    };
+    try {
+      gameEngine.value = new GameEngine(gameCanvas.value, config);
+      console.log('GameCanvas: 游戏引擎创建成功');
+      console.log('GameCanvas: 游戏引擎引用:', gameEngine.value);
 
-    gameEngine.value.setPlayer(player);
+      // 验证游戏引擎方法
+      const methods = ['start', 'stop', 'pause', 'setPlayer', 'getGameState'];
+      methods.forEach(method => {
+        console.log(`GameCanvas: 检查方法 ${method}:`, typeof gameEngine.value?.[method as keyof typeof gameEngine.value]);
+      });
 
-    // 自动开始游戏
-    setTimeout(() => {
-      gameEngine.value?.start();
-    }, 100);
+      // 不自动开始游戏，等待玩家数据设置
+      console.log('GameCanvas: 游戏引擎初始化完成，等待玩家数据');
+    } catch (error) {
+      console.error('GameCanvas: 游戏引擎创建失败:', error);
+    }
+  } else {
+    console.error('GameCanvas: 画布元素未找到');
   }
 });
 
@@ -85,27 +80,48 @@ onUnmounted(() => {
   }
 });
 
+// 添加一个简单的测试渲染
+const testCanvas = () => {
+  if (gameCanvas.value) {
+    const ctx = gameCanvas.value.getContext('2d');
+    if (ctx) {
+      console.log('GameCanvas: 测试画布渲染');
+      ctx.fillStyle = '#FF0000';
+      ctx.fillRect(0, 0, 100, 100);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '20px Arial';
+      ctx.fillText('测试画布', 10, 50);
+    } else {
+      console.error('GameCanvas: 无法获取2D上下文');
+    }
+  }
+};
+
 // 导出游戏引擎实例供外部使用
 defineExpose({
-  gameEngine
+  gameEngine,
+  testCanvas
 });
 </script>
 
 <style scoped>
 .game-canvas-container {
   position: relative;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #000;
 }
 
 .game-canvas {
-  border: 2px solid #333;
-  background-color: #1a1a1a;
+  width: 100%;
+  height: 100%;
+  background: #000;
   cursor: crosshair;
+  border: 2px solid #333;
 }
 
 .game-overlay {

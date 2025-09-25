@@ -58,7 +58,7 @@ export class GameEngine {
       },
       gameRunning: false,
       gameTime: 0,
-      mapSize: { x: 2000, y: 2000 }
+      mapSize: { x: 2000, y: 2000 } // 设置更大的地图尺寸
     };
   }
 
@@ -116,6 +116,10 @@ export class GameEngine {
 
   // 游戏控制方法
   public start(): void {
+    console.log('GameEngine: 开始游戏');
+    console.log('GameEngine: 玩家状态:', this.gameState.player ? '已设置' : '未设置');
+    console.log('GameEngine: 画布尺寸:', this.config.canvasWidth, 'x', this.config.canvasHeight);
+
     this.gameState.gameRunning = true;
     this.lastTime = performance.now();
     this.gameLoop();
@@ -337,6 +341,29 @@ export class GameEngine {
     // 清空画布
     this.ctx.clearRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
 
+    // 绘制正确的游戏背景
+    this.ctx.fillStyle = '#87CEEB'; // 天蓝色背景
+    this.ctx.fillRect(0, 0, this.config.canvasWidth, this.config.canvasHeight);
+
+    // 显示基础调试信息
+    this.ctx.fillStyle = '#FFF';
+    this.ctx.font = '16px Arial';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('游戏引擎运行中...', 10, 30);
+    this.ctx.fillText(`游戏状态: ${this.gameState.gameRunning ? '运行中' : '已停止'}`, 10, 50);
+    this.ctx.fillText(`玩家数据: ${this.gameState.player ? '已设置' : '未设置'}`, 10, 70);
+    this.ctx.fillText(`怪物数量: ${this.monsterSpawner.getAliveMonsterCount()}`, 10, 90);
+
+    // 如果玩家不存在，显示提示信息
+    if (!this.gameState.player) {
+      this.ctx.fillStyle = '#FFFF00';
+      this.ctx.font = '24px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('等待玩家数据...', this.config.canvasWidth / 2, this.config.canvasHeight / 2);
+      this.ctx.fillText('请先选择角色', this.config.canvasWidth / 2, this.config.canvasHeight / 2 + 40);
+      return;
+    }
+
     // 设置相机变换
     this.ctx.save();
     this.ctx.translate(-this.gameState.camera.position.x, -this.gameState.camera.position.y);
@@ -377,12 +404,12 @@ export class GameEngine {
   }
 
   private renderMap(): void {
-    // 简单的地图背景
-    this.ctx.fillStyle = '#2d5a27';
+    // 绘制草地背景
+    this.ctx.fillStyle = '#90EE90'; // 浅绿色草地
     this.ctx.fillRect(0, 0, this.gameState.mapSize.x, this.gameState.mapSize.y);
 
     // 绘制网格
-    this.ctx.strokeStyle = '#1a3d1a';
+    this.ctx.strokeStyle = 'rgba(26, 61, 26, 0.3)';
     this.ctx.lineWidth = 1;
     const gridSize = 50;
 
@@ -399,32 +426,93 @@ export class GameEngine {
       this.ctx.lineTo(this.gameState.mapSize.x, y);
       this.ctx.stroke();
     }
+
+    // 绘制主要区域
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+    this.ctx.lineWidth = 2;
+
+    // 中心区域
+    this.ctx.strokeRect(500, 500, 1000, 1000);
+
+    // 安全区域（怪物不会生成的区域）
+    this.ctx.strokeStyle = 'rgba(76, 175, 80, 0.3)';
+    this.ctx.lineWidth = 3;
+    this.ctx.setLineDash([10, 5]);
+    this.ctx.strokeRect(50, 50, 500, 500);
+    this.ctx.setLineDash([]);
+
+    // 绘制地图边界
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.lineWidth = 4;
+    this.ctx.strokeRect(0, 0, this.gameState.mapSize.x, this.gameState.mapSize.y);
   }
 
   private renderCharacter(character: any): void {
     this.ctx.save();
     this.ctx.translate(character.position.x, character.position.y);
 
-    // 绘制角色
-    this.ctx.fillStyle = character.type === 'player' ? '#4CAF50' : '#F44336';
-    this.ctx.fillRect(-20, -20, 40, 40);
+    // 绘制角色阴影
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.beginPath();
+    this.ctx.ellipse(0, 25, 15, 8, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // 绘制角色主体
+    if (character.type === 'player') {
+      // 玩家 - 绿色圆形
+      this.ctx.fillStyle = '#4CAF50';
+      this.ctx.beginPath();
+      this.ctx.arc(0, 0, 20, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      // 玩家边框
+      this.ctx.strokeStyle = '#2E7D32';
+      this.ctx.lineWidth = 3;
+      this.ctx.stroke();
+
+      // 玩家眼睛
+      this.ctx.fillStyle = '#FFF';
+      this.ctx.beginPath();
+      this.ctx.arc(-8, -5, 4, 0, Math.PI * 2);
+      this.ctx.arc(8, -5, 4, 0, Math.PI * 2);
+      this.ctx.fill();
+
+      this.ctx.fillStyle = '#000';
+      this.ctx.beginPath();
+      this.ctx.arc(-8, -5, 2, 0, Math.PI * 2);
+      this.ctx.arc(8, -5, 2, 0, Math.PI * 2);
+      this.ctx.fill();
+    } else {
+      // 其他角色 - 红色方形
+      this.ctx.fillStyle = '#F44336';
+      this.ctx.fillRect(-20, -20, 40, 40);
+
+      this.ctx.strokeStyle = '#D32F2F';
+      this.ctx.lineWidth = 3;
+      this.ctx.strokeRect(-20, -20, 40, 40);
+    }
+
+    // 绘制血条背景
+    const healthBarWidth = 50;
+    const healthBarHeight = 6;
+    const healthBarY = -35;
+
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(-healthBarWidth / 2, healthBarY, healthBarWidth, healthBarHeight);
 
     // 绘制血条
-    const healthBarWidth = 40;
-    const healthBarHeight = 4;
     const healthPercentage = character.stats.hp / character.stats.maxHp;
-
-    this.ctx.fillStyle = '#333';
-    this.ctx.fillRect(-healthBarWidth / 2, -30, healthBarWidth, healthBarHeight);
-
     this.ctx.fillStyle = healthPercentage > 0.6 ? '#4CAF50' :
                          healthPercentage > 0.3 ? '#FFC107' : '#F44336';
-    this.ctx.fillRect(-healthBarWidth / 2, -30, healthBarWidth * healthPercentage, healthBarHeight);
+    this.ctx.fillRect(-healthBarWidth / 2, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
 
-    // 绘制等级
+    // 绘制等级标签
     this.ctx.fillStyle = '#FFF';
-    this.ctx.font = '12px Arial';
-    this.ctx.fillText(`Lv.${character.stats.level}`, 0, -35);
+    this.ctx.strokeStyle = '#000';
+    this.ctx.lineWidth = 3;
+    this.ctx.font = 'bold 12px Arial';
+    this.ctx.strokeText(`Lv.${character.stats.level}`, 0, -45);
+    this.ctx.fillText(`Lv.${character.stats.level}`, 0, -45);
 
     this.ctx.restore();
   }
@@ -462,18 +550,55 @@ export class GameEngine {
     this.ctx.save();
     this.ctx.translate(monster.getPosition().x, monster.getPosition().y);
 
-    // 绘制怪物
-    this.ctx.fillStyle = monster.getColor();
     const size = monster.getSize();
-    this.ctx.fillRect(-size/2, -size/2, size, size);
+    const monsterState = monster.getMonsterState();
+
+    // 绘制怪物阴影
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    this.ctx.beginPath();
+    this.ctx.ellipse(0, size/2 + 5, size/3, size/4, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // 绘制怪物主体
+    this.ctx.fillStyle = monster.getColor();
+    this.ctx.beginPath();
+    this.ctx.arc(0, 0, size/2, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // 绘制怪物边框
+    this.ctx.strokeStyle = this.darkenColor(monster.getColor());
+    this.ctx.lineWidth = 2;
+    this.ctx.stroke();
+
+    // 绘制怪物眼睛
+    this.ctx.fillStyle = '#FFF';
+    this.ctx.beginPath();
+    this.ctx.arc(-size/4, -size/6, size/8, 0, Math.PI * 2);
+    this.ctx.arc(size/4, -size/6, size/8, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    this.ctx.fillStyle = '#000';
+    this.ctx.beginPath();
+    this.ctx.arc(-size/4, -size/6, size/12, 0, Math.PI * 2);
+    this.ctx.arc(size/4, -size/6, size/12, 0, Math.PI * 2);
+    this.ctx.fill();
 
     // 绘制血条
     this.renderMonsterHealthBar(monster, size);
 
-    // 绘制等级
+    // 绘制等级和名称
     this.ctx.fillStyle = '#FFF';
-    this.ctx.font = '12px Arial';
-    this.ctx.fillText(`Lv.${monster.getMonsterState().stats.level}`, 0, -size/2 - 10);
+    this.ctx.strokeStyle = '#000';
+    this.ctx.lineWidth = 2;
+    this.ctx.font = 'bold 10px Arial';
+    this.ctx.strokeText(`Lv.${monsterState.stats.level}`, 0, -size/2 - 5);
+    this.ctx.fillText(`Lv.${monsterState.stats.level}`, 0, -size/2 - 5);
+
+    // 绘制怪物名称
+    this.ctx.font = '8px Arial';
+    const monsterName = monster.getName ? monster.getName() : monster.getType();
+    this.ctx.strokeText(monsterName, 0, -size/2 - 18);
+    this.ctx.fillText(monsterName, 0, -size/2 - 18);
 
     // 绘制状态指示
     this.renderMonsterStatus(monster, size);
@@ -482,23 +607,53 @@ export class GameEngine {
   }
 
   /**
+   * 颜色加深函数
+   */
+  private darkenColor(color: string): string {
+    // 简单的颜色加深逻辑
+    if (color.startsWith('#')) {
+      const hex = color.slice(1);
+      const r = Math.max(0, parseInt(hex.slice(0, 2), 16) - 40);
+      const g = Math.max(0, parseInt(hex.slice(2, 4), 16) - 40);
+      const b = Math.max(0, parseInt(hex.slice(4, 6), 16) - 40);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    return color;
+  }
+
+  /**
    * 渲染怪物血条
    */
   private renderMonsterHealthBar(monster: any, size: number): void {
     const monsterState = monster.getMonsterState();
     const healthPercentage = monsterState.stats.hp / monsterState.stats.maxHp;
-    const healthBarWidth = size;
-    const healthBarHeight = 4;
-    const healthBarY = -size/2 - 20;
+    const healthBarWidth = size * 0.8;
+    const healthBarHeight = 6;
+    const healthBarY = -size/2 - 12;
 
     // 血条背景
-    this.ctx.fillStyle = '#333';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     this.ctx.fillRect(-healthBarWidth/2, healthBarY, healthBarWidth, healthBarHeight);
 
+    // 血条边框
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(-healthBarWidth/2, healthBarY, healthBarWidth, healthBarHeight);
+
     // 血条填充
-    this.ctx.fillStyle = healthPercentage > 0.6 ? '#4CAF50' :
-                         healthPercentage > 0.3 ? '#FFC107' : '#F44336';
+    const fillColor = healthPercentage > 0.6 ? '#4CAF50' :
+                     healthPercentage > 0.3 ? '#FFC107' : '#F44336';
+    this.ctx.fillStyle = fillColor;
     this.ctx.fillRect(-healthBarWidth/2, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+
+    // 显示血量数值
+    this.ctx.fillStyle = '#FFF';
+    this.ctx.strokeStyle = '#000';
+    this.ctx.lineWidth = 2;
+    this.ctx.font = 'bold 8px Arial';
+    const healthText = `${monsterState.stats.hp}/${monsterState.stats.maxHp}`;
+    this.ctx.strokeText(healthText, 0, healthBarY - 3);
+    this.ctx.fillText(healthText, 0, healthBarY - 3);
   }
 
   /**
@@ -567,6 +722,26 @@ export class GameEngine {
     this.ctx.fillStyle = '#FFF';
     this.ctx.textAlign = 'right';
     this.ctx.fillText(`FPS: ${fps}`, this.config.canvasWidth - 10, 30);
+
+    // 渲染调试信息
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(10, 90, 300, 180);
+
+    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(10, 90, 300, 180);
+
+    this.ctx.fillStyle = '#FFFF00';
+    this.ctx.font = 'bold 12px Arial';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('🎮 游戏调试信息', 20, 110);
+
+    this.ctx.fillStyle = '#FFF';
+    this.ctx.font = '11px Arial';
+    const debugInfo = this.getDebugInfo().split('\n').slice(1, -1); // 移除首尾行
+    debugInfo.forEach((line, index) => {
+      this.ctx.fillText(line.trim(), 20, 130 + index * 14);
+    });
   }
 
   // 工具方法
@@ -699,8 +874,21 @@ export class GameEngine {
   }
 
   public setPlayer(player: any): void {
+    console.log('GameEngine: 设置玩家数据', player);
     this.gameState.player = player;
     this.gameState.camera.target = player;
+
+    // 确保相机位置正确，将玩家放在屏幕中心
+    if (player && player.position) {
+      this.gameState.camera.position = {
+        x: player.position.x - this.config.canvasWidth / 2,
+        y: player.position.y - this.config.canvasHeight / 2
+      };
+
+      // 限制相机范围
+      this.gameState.camera.position.x = Math.max(0, Math.min(this.gameState.camera.position.x, this.gameState.mapSize.x - this.config.canvasWidth));
+      this.gameState.camera.position.y = Math.max(0, Math.min(this.gameState.camera.position.y, this.gameState.mapSize.y - this.config.canvasHeight));
+    }
   }
 
   public addMonster(monster: any): void {
@@ -750,6 +938,8 @@ export class GameEngine {
     const monsterCount = this.monsterSpawner.getAliveMonsterCount();
     const playerHealth = this.gameState.player?.stats.hp || 0;
     const gameTime = Math.round(this.gameState.gameTime);
+    const cameraPos = this.gameState.camera.position;
+    const playerPos = this.gameState.player?.position || { x: 0, y: 0 };
 
     return `
 🎮 游戏调试信息 🎮
@@ -757,6 +947,11 @@ export class GameEngine {
 玩家生命: ${playerHealth}
 存活怪物: ${monsterCount}只
 怪物上限: ${this.monsterSpawner.getMonsterCount()}
+相机位置: (${Math.round(cameraPos.x)}, ${Math.round(cameraPos.y)})
+玩家位置: (${Math.round(playerPos.x)}, ${Math.round(playerPos.y)})
+游戏状态: ${this.gameState.gameRunning ? '运行中' : '已停止'}
+地图尺寸: ${this.gameState.mapSize.x}x${this.gameState.mapSize.y}
+画布尺寸: ${this.config.canvasWidth}x${this.config.canvasHeight}
     `;
   }
 

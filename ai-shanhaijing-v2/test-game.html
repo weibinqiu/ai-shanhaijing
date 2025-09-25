@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏引擎测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .test-controls {
+            margin-bottom: 20px;
+        }
+
+        .test-controls button {
+            margin: 5px;
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .test-controls button:hover {
+            background: #1976D2;
+        }
+
+        #testCanvas {
+            border: 2px solid #333;
+            background: #000;
+        }
+
+        .test-info {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>游戏引擎测试</h1>
+
+        <div class="test-controls">
+            <button onclick="startGame()">开始游戏</button>
+            <button onclick="pauseGame()">暂停游戏</button>
+            <button onclick="stopGame()">停止游戏</button>
+            <button onclick="addPlayer()">添加玩家</button>
+            <button onclick="showDebugInfo()">显示调试信息</button>
+        </div>
+
+        <canvas id="testCanvas" width="800" height="600"></canvas>
+
+        <div class="test-info" id="testInfo">
+            点击按钮开始测试游戏引擎功能
+        </div>
+    </div>
+
+    <script type="module">
+        import { GameEngine } from './src/services/game/gameEngine.js';
+
+        let gameEngine = null;
+        let testInfo = document.getElementById('testInfo');
+
+        function updateInfo(message) {
+            testInfo.innerHTML = message;
+        }
+
+        window.startGame = function() {
+            if (!gameEngine) {
+                const canvas = document.getElementById('testCanvas');
+                const config = {
+                    canvasWidth: 800,
+                    canvasHeight: 600,
+                    tileSize: 50,
+                    maxMonsters: 5,
+                    maxItems: 3,
+                    itemSpawnInterval: 30000,
+                    fps: 60
+                };
+
+                gameEngine = new GameEngine(canvas, config);
+                updateInfo('游戏引擎已创建');
+            }
+
+            gameEngine.start();
+            updateInfo('游戏已开始');
+        };
+
+        window.pauseGame = function() {
+            if (gameEngine) {
+                gameEngine.pause();
+                updateInfo('游戏已暂停');
+            }
+        };
+
+        window.stopGame = function() {
+            if (gameEngine) {
+                gameEngine.stop();
+                updateInfo('游戏已停止');
+            }
+        };
+
+        window.addPlayer = function() {
+            if (gameEngine) {
+                const player = {
+                    id: 'test-player',
+                    type: 'player',
+                    position: { x: 400, y: 300 },
+                    velocity: { x: 0, y: 0 },
+                    stats: {
+                        hp: 100,
+                        maxHp: 100,
+                        attack: 20,
+                        defense: 10,
+                        speed: 5,
+                        level: 1,
+                        exp: 0
+                    },
+                    skills: [],
+                    direction: 'down',
+                    isMoving: false,
+                    isAlive: true
+                };
+
+                gameEngine.setPlayer(player);
+                updateInfo('玩家已添加');
+            }
+        };
+
+        window.showDebugInfo = function() {
+            if (gameEngine) {
+                const debugInfo = gameEngine.getDebugInfo();
+                updateInfo(`<pre>${debugInfo}</pre>`);
+            }
+        };
+    </script>
+</body>
+</html>

@@ -37,12 +37,12 @@ export class MonsterSpawner {
       maxMonsters: config.maxMonsters || 10,
       spawnInterval: config.spawnInterval || 30, // 30秒
       initialMonsters: config.initialMonsters || [
-        { type: 'slime', position: { x: 300, y: 300 } },
-        { type: 'slime', position: { x: 500, y: 400 } },
-        { type: 'slime', position: { x: 700, y: 300 } },
-        { type: 'goblin', position: { x: 400, y: 600 } },
-        { type: 'goblin', position: { x: 800, y: 500 } },
-        { type: 'orc', position: { x: 600, y: 800 } }
+        { type: 'slime', position: { x: 800, y: 800 } },
+        { type: 'slime', position: { x: 1200, y: 900 } },
+        { type: 'slime', position: { x: 1500, y: 700 } },
+        { type: 'goblin', position: { x: 1000, y: 1200 } },
+        { type: 'goblin', position: { x: 1400, y: 1100 } },
+        { type: 'orc', position: { x: 1600, y: 1400 } }
       ],
       spawnWeights: config.spawnWeights || {
         slime: 5,
@@ -51,7 +51,7 @@ export class MonsterSpawner {
       },
       safeZone: config.safeZone || {
         center: { x: 1000, y: 1000 },
-        radius: 200
+        radius: 400
       }
     };
   }

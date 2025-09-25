@@ -46,40 +46,7 @@
                     </div>
                     <button class="select-btn">选择木棒人</button>
                 </div>
-                
-                <div class="character-card" data-character="shark">
-                    <div class="character-avatar shark-avatar">
-                        <img src="assets/images/耐克鲨鱼.png" alt="耐克鲨鱼">
-                    </div>
-                    <h3>Lv.5 耐克鲨鱼</h3>
-                    <div class="character-stats">
-                        <div class="stat">
-                            <span class="stat-label">攻击力</span>
-                            <div class="stat-bar">
-                                <div class="stat-fill" style="width: 95%"></div>
-                            </div>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">防御力</span>
-                            <div class="stat-bar">
-                                <div class="stat-fill" style="width: 80%"></div>
-                            </div>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">速度</span>
-                            <div class="stat-bar">
-                                <div class="stat-fill" style="width: 90%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="character-abilities">
-                        <span class="ability">鲨鱼咬击</span>
-                        <span class="ability">高速冲击</span>
-                        <span class="ability">耐克加速</span>
-                    </div>
-                    <button class="select-btn">选择耐克鲨鱼</button>
-                </div>
-                
+
                 <div class="character-card" data-character="coffee-ninja">
                     <div class="character-avatar coffee-ninja-avatar">
                         <img src="assets/images/咖啡忍者.png" alt="咖啡忍者">
@@ -112,7 +79,73 @@
                     </div>
                     <button class="select-btn">选择咖啡忍者</button>
                 </div>
-                
+
+                <div class="character-card" data-character="shark">
+                    <div class="character-avatar shark-avatar">
+                        <img src="assets/images/耐克鲨鱼.png" alt="耐克鲨鱼">
+                    </div>
+                    <h3>Lv.5 耐克鲨鱼</h3>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span class="stat-label">攻击力</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">防御力</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">速度</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 90%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="character-abilities">
+                        <span class="ability">鲨鱼咬击</span>
+                        <span class="ability">高速冲击</span>
+                        <span class="ability">耐克加速</span>
+                    </div>
+                    <button class="select-btn">选择耐克鲨鱼</button>
+                </div>
+
+                <div class="character-card" data-character="tire-frog">
+                    <div class="character-avatar tire-frog-avatar">
+                        <img src="assets/images/轮胎青蛙.png" alt="轮胎青蛙">
+                    </div>
+                    <h3>Lv.8 轮胎青蛙</h3>
+                    <div class="character-stats">
+                        <div class="stat">
+                            <span class="stat-label">攻击力</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">防御力</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">速度</span>
+                            <div class="stat-bar">
+                                <div class="stat-fill" style="width: 95%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="character-abilities">
+                        <span class="ability">轮胎碾压</span>
+                        <span class="ability">弹跳攻击</span>
+                        <span class="ability">橡胶防御</span>
+                    </div>
+                    <button class="select-btn">选择轮胎青蛙</button>
+                </div>
+
                 <div class="character-card" data-character="ice-camel">
                     <div class="character-avatar ice-camel-avatar">
                         <img src="assets/images/冰箱骆驼.png" alt="冰箱骆驼">
@@ -145,6 +178,11 @@
                     </div>
                     <button class="select-btn">选择冰箱骆驼</button>
                 </div>
+            </div>
+
+            <!-- 开始游戏按钮 -->
+            <div class="game-start-section">
+                <button class="start-game-btn" id="start-game-btn" onclick="game.startSelectedGame()" disabled>开始游戏</button>
             </div>
         </div>
     </div>
@@ -295,14 +333,25 @@
     <audio id="defeat-sound" preload="auto"></audio>
 
     <!-- 角色选择音效 -->
-    <audio id="stickman-hover" preload="auto">
-        <source src="assets/sounds/木棒人.m4a" type="audio/mp4">
+    <audio id="select-sound" preload="auto">
+        <source src="assets/sounds/选择音效.mp3" type="audio/mpeg">
     </audio>
-    <audio id="shark-hover" preload="auto">
-        <source src="assets/sounds/耐克鲨鱼.m4a" type="audio/mp4">
+
+    <!-- 角色语音 -->
+    <audio id="stickman-voice" preload="auto">
+        <source src="assets/sounds/木棍人tungtungtungtungsahur_爱给网_aigei_com.mp3" type="audio/mpeg">
     </audio>
-    <audio id="coffee-ninja-hover" preload="auto">
+    <audio id="coffee-ninja-voice" preload="auto">
         <source src="assets/sounds/咖啡忍者.m4a" type="audio/mp4">
+    </audio>
+    <audio id="shark-voice" preload="auto">
+        <source src="assets/sounds/耐克鲨鱼_爱给网_aigei_com.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="tire-frog-voice" preload="auto">
+        <source src="assets/sounds/轮胎青蛙_爱给网_aigei_com.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="ice-camel-voice" preload="auto">
+        <source src="assets/sounds/冰箱骆驼.m4a" type="audio/mp4">
     </audio>
 
     <!-- 存档系统 -->
@@ -338,8 +387,8 @@
         cursor: pointer;
     " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
         <div style="margin-bottom: 3px; font-weight: bold; color: #ffd700;">制作人员</div>
-        <div>制作: burning</div>
-        <div>美术: kaien</div>
+        <div>制作总监: burning</div>
+        <div>美术总监: kaien</div>
     </div>
 </body>
 </html>

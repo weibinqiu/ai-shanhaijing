@@ -28,40 +28,18 @@
           </div>
           <h3>{{ character.title }}</h3>
 
-          <!-- 具体数值显示 -->
-          <div class="character-detailed-stats" v-if="selectedCharacter === character.id">
-            <div class="stat-item">
-              <span class="stat-icon">❤️</span>
-              <span class="stat-name">生命值</span>
-              <span class="stat-value">{{ character.attributes.hp }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-icon">⚔️</span>
-              <span class="stat-name">攻击力</span>
-              <span class="stat-value">{{ character.attributes.attack }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-icon">🛡️</span>
-              <span class="stat-name">防御力</span>
-              <span class="stat-value">{{ character.attributes.defense }}</span>
-            </div>
-            <div class="stat-item">
-              <span class="stat-icon">⚡</span>
-              <span class="stat-name">速度</span>
-              <span class="stat-value">{{ character.attributes.speed }}</span>
-            </div>
-          </div>
-
           <!-- 进度条显示 -->
           <div class="character-stats">
             <div class="stat" v-for="stat in character.stats" :key="stat.label">
               <span class="stat-label">{{ stat.label }}</span>
-              <div class="stat-bar">
-                <div class="stat-fill" :style="{ width: stat.value + '%' }"></div>
+              <div class="stat-bar-container">
+                <div class="stat-bar">
+                  <div class="stat-fill" :style="{ width: stat.value + '%' }"></div>
+                </div>
+                <span class="stat-number" v-if="selectedCharacter === character.id">
+                  {{ getStatValue(stat.label, character.attributes) }}
+                </span>
               </div>
-              <span class="stat-number" v-if="selectedCharacter === character.id">
-                {{ getStatValue(stat.label, character.attributes) }}
-              </span>
             </div>
           </div>
 
@@ -340,24 +318,38 @@ defineExpose({
 </script>
 
 <style scoped>
+/* 确保组件内中文文字正常显示 */
+.character-select, .character-select-container, .game-title, .subtitle,
+.character-card, .character-name, .character-desc, .ability,
+.select-btn, .start-game-btn {
+  letter-spacing: 0px;
+  word-spacing: 0px;
+}
+
+/* 按钮文字特殊处理 */
+.select-btn, .start-game-btn {
+  letter-spacing: 0px !important;
+  white-space: nowrap;
+}
+
 .character-select {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 20px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: hidden;
+  align-items: flex-start;
+  padding: 0;
+  position: relative;
+  overflow-y: visible;
 }
 
 .character-select-container {
   text-align: center;
-  max-width: 1200px;
+  max-width: 100%;
   width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .game-title {
@@ -365,6 +357,13 @@ defineExpose({
   color: #fff;
   margin-bottom: 10px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  line-height: 1.2;
+  white-space: nowrap;
+  letter-spacing: 0px;
+  text-align: center;
+  width: 100%;
+  display: block;
 }
 
 .subtitle {
@@ -376,12 +375,13 @@ defineExpose({
 
 .character-options {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
   margin-bottom: 40px;
-  max-width: 1400px;
+  max-width: 1350px;
   margin-left: auto;
   margin-right: auto;
+  justify-content: center;
 }
 
 .character-card {
@@ -392,7 +392,7 @@ defineExpose({
   border: 2px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
   cursor: pointer;
-  min-height: 380px;
+  min-height: 300px;
 }
 
 .character-card:hover {
@@ -542,93 +542,49 @@ defineExpose({
 }
 
 .stat {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .stat-label {
   color: #fff;
   font-size: 14px;
-  display: block;
-  margin-bottom: 5px;
+  font-weight: 500;
+  text-align: left;
+}
+
+.stat-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .stat-bar {
-  width: 100%;
+  flex: 1;
   height: 8px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   overflow: hidden;
+  position: relative;
 }
 
 .stat-fill {
   height: 100%;
   background: linear-gradient(90deg, #4CAF50, #8BC34A);
   transition: width 0.3s ease;
+  border-radius: 4px;
 }
 
 .stat-number {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-  font-weight: bold;
-  color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-/* 详细数值显示 */
-.character-detailed-stats {
-  margin-bottom: 15px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-
-.stat-icon {
-  font-size: 16px;
-  margin-right: 8px;
-}
-
-.stat-name {
-  flex: 1;
-  font-size: 14px;
-  color: #fff;
-}
-
-.stat-value {
-  font-size: 16px;
+  min-width: 35px;
+  font-size: 13px;
   font-weight: bold;
   color: #FFD700;
   text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  text-align: right;
   animation: numberGlow 2s ease-in-out infinite;
 }
 
@@ -757,6 +713,9 @@ defineExpose({
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+  position: relative;
+  z-index: 100;
+  margin-top: 20px;
 }
 
 .start-game-btn:hover {
@@ -765,28 +724,57 @@ defineExpose({
   box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
 }
 
-@media (max-width: 1400px) {
+/* Mac大屏幕 - 确保5列显示 */
+@media (min-width: 1400px) {
   .character-options {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 1400px;
+    gap: 25px;
   }
 }
 
-@media (max-width: 1200px) {
+/* 中大屏幕 - 确保4-5列显示 */
+@media (min-width: 1200px) and (max-width: 1399px) {
   .character-options {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1100px;
+    gap: 20px;
+  }
+}
+
+/* 中等屏幕 */
+@media (max-width: 1199px) {
+  .character-options {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    max-width: 1000px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 999px) {
+  .character-options {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    max-width: 900px;
     gap: 15px;
   }
 }
 
 @media (max-width: 768px) {
   .character-options {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
+    max-width: 100%;
   }
 
   .game-title {
     font-size: 36px;
+    font-weight: bold;
+    line-height: 1.2;
+    white-space: nowrap;
+    letter-spacing: 0px;
+    text-align: center;
+    width: 100%;
+    display: block;
   }
 
   .subtitle {
@@ -794,8 +782,25 @@ defineExpose({
   }
 
   .character-card {
-    min-height: 350px;
+    min-height: 280px;
     padding: 12px;
+  }
+
+  .character-select-container {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .character-options {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    max-width: 100%;
+  }
+
+  .character-card {
+    min-height: 260px;
+    padding: 10px;
   }
 }
 </style>

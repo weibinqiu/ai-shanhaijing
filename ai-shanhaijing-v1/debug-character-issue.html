@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色显示问题调试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .debug-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .debug-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #debug-output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>角色显示问题调试</h1>
+
+        <div class="debug-section">
+            <h2>问题分析</h2>
+            <p>用户报告看到"耐克鲨鱼5级"的图标，但应该显示的是所选角色（如木棒人1级）。</p>
+            <button class="debug-button" onclick="checkCharacterData()">检查角色数据</button>
+            <button class="debug-button" onclick="testGameInitialization()">测试游戏初始化</button>
+            <button class="debug-button" onclick="checkRenderMap()">检查renderMap函数</button>
+        </div>
+
+        <div id="debug-output"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function checkCharacterData() {
+            log('=== 检查角色数据 ===');
+
+            // 检查Game类中的characterData
+            const game = new Game();
+
+            // 检查各种角色的数据
+            const testCharacters = ['stickman', 'coffee-ninja', 'shark', 'tire-frog', 'ice-camel'];
+
+            testCharacters.forEach(char => {
+                game.selectedCharacter = char;
+                game.initializePlayer();
+                log(`${char} - 名称: ${game.player.name}, 等级: ${game.player.level}`);
+            });
+
+            log('');
+        }
+
+        function testGameInitialization() {
+            log('=== 测试游戏初始化流程 ===');
+
+            try {
+                // 模拟完整的游戏初始化流程
+                const game = new Game();
+                game.selectedCharacter = 'stickman'; // 假设选择木棒人
+
+                log(`1. 选择角色: ${game.selectedCharacter}`);
+
+                // 初始化玩家
+                game.initializePlayer();
+                log(`2. 玩家初始化完成: ${game.player.name} (等级 ${game.player.level})`);
+
+                // 创建游戏层（模拟）
+                const tempDiv = document.createElement('div');
+                tempDiv.id = 'temp-game-layer';
+                tempDiv.style.cssText = 'width: 800px; height: 600px; position: relative; background: #2d5a3d;';
+                document.body.appendChild(tempDiv);
+                game.gameLayer = tempDiv;
+
+                log('3. 游戏层创建完成');
+
+                // 渲染地图（这里会显示UI）
+                game.renderMap();
+                log('4. 地图渲染完成');
+
+                // 检查渲染后的UI内容
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    log(`5. 游戏UI内容: ${gameUI.textContent}`);
+                    log(`6. UI显示的角色名称: ${gameUI.querySelector('div')?.textContent}`);
+                } else {
+                    log('5. 未找到游戏UI');
+                }
+
+                // 清理
+                document.body.removeChild(tempDiv);
+
+            } catch (error) {
+                log(`测试失败: ${error.message}`);
+                console.error(error);
+            }
+
+            log('');
+        }
+
+        function checkRenderMap() {
+            log('=== 检查renderMap函数 ===');
+
+            // 创建一个临时的游戏对象来检查renderMap
+            const game = new Game();
+
+            // 测试不同角色
+            const testCases = [
+                { character: 'stickman', expected: '木棒人' },
+                { character: 'coffee-ninja', expected: '咖啡忍者' },
+                { character: 'shark', expected: '耐克鲨鱼' }
+            ];
+
+            testCases.forEach(testCase => {
+                log(`测试角色: ${testCase.character}`);
+
+                game.selectedCharacter = testCase.character;
+                game.initializePlayer();
+
+                // 创建临时游戏层
+                const tempDiv = document.createElement('div');
+                tempDiv.style.cssText = 'width: 500px; height: 300px; position: relative; display: none;';
+                document.body.appendChild(tempDiv);
+                game.gameLayer = tempDiv;
+
+                // 渲染地图
+                game.renderMap();
+
+                // 检查UI内容
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    const uiText = gameUI.textContent;
+                    log(`  UI显示: ${uiText}`);
+                    log(`  期望: ${testCase.expected}`);
+                    log(`  是否匹配: ${uiText.includes(testCase.expected) ? '✅' : '❌'}`);
+                }
+
+                // 清理
+                document.body.removeChild(tempDiv);
+            });
+
+            log('');
+        }
+
+        // 页面加载完成后自动运行检查
+        window.onload = function() {
+            log('角色显示问题调试页面加载完成');
+            log('点击按钮开始检查问题...');
+            log('');
+
+            // 自动运行基本的角色数据检查
+            setTimeout(() => {
+                checkCharacterData();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

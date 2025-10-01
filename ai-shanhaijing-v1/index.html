@@ -324,13 +324,21 @@
         </div>
     </div>
 
-    <!-- 战斗音效 - 这些文件暂时不存在，将使用Web Audio API生成 -->
+    <!-- 战斗音效 -->
     <audio id="battle-start-sound" preload="auto"></audio>
     <audio id="attack-sound" preload="auto"></audio>
-    <audio id="skill-sound" preload="auto"></audio>
+    <audio id="skill-sound" preload="auto">
+        <source src="assets/sounds/游戏击打音效.mp3" type="audio/mpeg">
+    </audio>
     <audio id="hit-sound" preload="auto"></audio>
     <audio id="victory-sound" preload="auto"></audio>
     <audio id="defeat-sound" preload="auto"></audio>
+    <audio id="gold-sound" preload="auto">
+        <source src="assets/sounds/金币音效.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="camel-spit-sound" preload="auto">
+        <source src="assets/sounds/骆驼吐(Camel Spit)_爱给网_aigei_com.wav" type="audio/wav">
+    </audio>
 
     <!-- 角色选择音效 -->
     <audio id="select-sound" preload="auto">
@@ -365,6 +373,18 @@
 
     <!-- 游戏脚本 -->
     <script src="game.js"></script>
+
+    <!-- 游戏初始化脚本 -->
+    <script>
+        // 等待页面加载完成后初始化游戏对象
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化全局游戏对象
+            window.game = new Game();
+            // 调用游戏初始化方法
+            window.game.init();
+            console.log('游戏对象初始化完成');
+        });
+    </script>
 
     <!-- 快速检查脚本（仅用于调试） -->
     <script src="quick-check.js"></script>

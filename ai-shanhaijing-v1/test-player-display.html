@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>玩家角色显示测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .test-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            background: #2d5a3d;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #debug-output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>玩家角色显示测试</h1>
+
+        <div class="test-info">
+            <h2>测试说明</h2>
+            <p>此页面专门用于测试玩家角色显示问题。通过简化游戏流程，直接验证玩家角色是否能够正确显示。</p>
+        </div>
+
+        <div class="test-controls">
+            <button class="test-button" onclick="initGame()">初始化游戏</button>
+            <button class="test-button" onclick="createPlayer()" id="createPlayerBtn" disabled>创建玩家</button>
+            <button class="test-button" onclick="testPlayerPosition()" id="testPositionBtn" disabled>测试位置</button>
+            <button class="test-button" onclick="clearGame()">清空游戏</button>
+            <button class="test-button" onclick="clearDebug()">清除日志</button>
+        </div>
+
+        <div id="game-container"></div>
+
+        <div id="debug-output"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        let game;
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function clearDebug() {
+            debugLog = [];
+            updateDebugDisplay();
+        }
+
+        function initGame() {
+            try {
+                log('开始初始化游戏...');
+                game = new Game();
+                game.selectedCharacter = 'stickman';
+                game.gameLayer = document.getElementById('game-container');
+
+                log('游戏对象创建成功');
+                log('选中的角色: stickman');
+
+                document.getElementById('createPlayerBtn').disabled = false;
+
+                log('可以创建玩家了');
+            } catch (error) {
+                log(`初始化失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function createPlayer() {
+            try {
+                log('开始创建玩家...');
+
+                // 初始化玩家数据
+                game.initializePlayer();
+                log('玩家数据初始化完成');
+                log(`玩家信息: ${game.player.name}, 位置(${game.player.x}, ${game.player.y})`);
+
+                // 创建游戏世界
+                game.gameLayer.innerHTML = `
+                    <div class="game-world" style="
+                        position: relative;
+                        width: 100%;
+                        height: 100%;
+                        background: linear-gradient(45deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+                        overflow: visible;
+                    ">
+                        <!-- 玩家角色将在这里添加 -->
+                    </div>
+                `;
+
+                log('游戏世界创建完成');
+
+                // 创建玩家角色元素
+                game.createPlayerElement();
+                log('玩家角色元素创建完成');
+
+                // 检查玩家角色是否真的被添加到了DOM中
+                const gameWorld = game.gameLayer.querySelector('.game-world');
+                const playerElement = gameWorld.querySelector('.player-character');
+
+                if (playerElement) {
+                    log('✅ 玩家角色元素已成功添加到游戏世界');
+                    log(`玩家元素位置: ${playerElement.style.left}, ${playerElement.style.top}`);
+                    log(`玩家元素内容: ${playerElement.innerHTML}`);
+
+                    // 检查玩家元素是否可见
+                    const rect = playerElement.getBoundingClientRect();
+                    log(`玩家元素尺寸: ${rect.width}x${rect.height}`);
+                    log(`玩家元素是否可见: ${rect.width > 0 && rect.height > 0}`);
+
+                    document.getElementById('testPositionBtn').disabled = false;
+                } else {
+                    log('❌ 玩家角色元素未找到');
+                }
+
+            } catch (error) {
+                log(`创建玩家失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testPlayerPosition() {
+            try {
+                if (!game || !game.player) {
+                    log('请先创建玩家');
+                    return;
+                }
+
+                log('开始测试玩家位置...');
+
+                // 获取玩家元素
+                const playerElement = game.player.element;
+                if (!playerElement) {
+                    log('玩家元素不存在');
+                    return;
+                }
+
+                // 测试移动
+                log('测试玩家移动...');
+                game.player.x = 200;
+                game.player.y = 200;
+
+                // 更新玩家位置
+                if (playerElement) {
+                    playerElement.style.left = (game.player.x - 25) + 'px';
+                    playerElement.style.top = (game.player.y - 25) + 'px';
+                    log(`玩家位置更新为: (${game.player.x}, ${game.player.y})`);
+                }
+
+                // 检查更新后的位置
+                const rect = playerElement.getBoundingClientRect();
+                log(`更新后玩家元素位置: ${rect.left}, ${rect.top}`);
+                log(`更新后玩家元素尺寸: ${rect.width}x${rect.height}`);
+
+                // 测试不同的位置
+                const testPositions = [
+                    {x: 100, y: 100},
+                    {x: 400, y: 300},
+                    {x: 600, y: 200}
+                ];
+
+                testPositions.forEach((pos, index) => {
+                    setTimeout(() => {
+                        game.player.x = pos.x;
+                        game.player.y = pos.y;
+                        playerElement.style.left = (game.player.x - 25) + 'px';
+                        playerElement.style.top = (game.player.y - 25) + 'px';
+                        log(`测试位置${index + 1}: (${pos.x}, ${pos.y})`);
+                    }, 1000 * (index + 1));
+                });
+
+            } catch (error) {
+                log(`测试位置失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function clearGame() {
+            try {
+                log('清空游戏...');
+
+                if (game && game.gameLayer) {
+                    game.gameLayer.innerHTML = '';
+                }
+
+                game = null;
+
+                document.getElementById('createPlayerBtn').disabled = true;
+                document.getElementById('testPositionBtn').disabled = true;
+
+                log('游戏已清空');
+            } catch (error) {
+                log(`清空游戏失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 页面加载完成
+        window.onload = function() {
+            log('玩家角色显示测试页面加载完成');
+            log('点击"初始化游戏"开始测试');
+        };
+    </script>
+</body>
+</html>

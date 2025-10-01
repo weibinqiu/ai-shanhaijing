@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏调试测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        #game-debug {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>游戏调试测试页面</h1>
+
+    <div class="test-info">
+        <h2>测试功能</h2>
+        <p>这个页面用于测试游戏角色的显示和NPC交互功能。</p>
+        <button class="test-button" onclick="testGameInit()">测试游戏初始化</button>
+        <button class="test-button" onclick="testPlayerCreation()">测试角色创建</button>
+        <button class="test-button" onclick="testEnemyCreation()">测试敌人创建</button>
+        <button class="test-button" onclick="testBattleStart()">测试战斗开始</button>
+        <button class="test-button" onclick="clearDebug()">清除调试信息</button>
+    </div>
+
+    <div id="game-debug"></div>
+
+    <script src="game.js"></script>
+    <script>
+        let game;
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('game-debug');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function clearDebug() {
+            debugLog = [];
+            updateDebugDisplay();
+        }
+
+        function testGameInit() {
+            log('开始测试游戏初始化...');
+            try {
+                game = new Game();
+                log('游戏对象创建成功');
+
+                // 模拟角色选择
+                game.selectedCharacter = 'stickman';
+                log('设置选中角色: stickman');
+
+                // 初始化玩家
+                game.initializePlayer();
+                log('玩家初始化完成');
+
+                log('玩家信息:');
+                log(`  名称: ${game.player.name}`);
+                log(`  位置: (${game.player.x}, ${game.player.y})`);
+                log(`  生命值: ${game.player.health}/${game.player.maxHealth}`);
+
+            } catch (error) {
+                log(`错误: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testPlayerCreation() {
+            log('开始测试角色创建...');
+            try {
+                if (!game) {
+                    log('请先初始化游戏');
+                    return;
+                }
+
+                // 创建游戏层
+                const gameLayer = document.createElement('div');
+                gameLayer.id = 'game-layer';
+                gameLayer.style.cssText = `
+                    position: relative;
+                    width: 800px;
+                    height: 600px;
+                    background: #2d5a3d;
+                    overflow: hidden;
+                    margin: 20px 0;
+                `;
+                document.body.appendChild(gameLayer);
+                game.gameLayer = gameLayer;
+
+                // 渲染地图
+                game.renderMap();
+                log('地图渲染完成');
+
+                // 创建角色元素
+                game.createPlayerElement();
+                log('角色元素创建完成');
+
+                if (game.player.element) {
+                    log('角色DOM元素创建成功');
+                    log(`角色元素位置: ${game.player.element.style.left}, ${game.player.element.style.top}`);
+                } else {
+                    log('错误: 角色DOM元素创建失败');
+                }
+
+            } catch (error) {
+                log(`错误: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testEnemyCreation() {
+            log('开始测试敌人创建...');
+            try {
+                if (!game || !game.gameLayer) {
+                    log('请先创建游戏场景');
+                    return;
+                }
+
+                game.createEnemies();
+                log(`敌人创建完成，共创建 ${game.enemies.length} 个敌人`);
+
+                game.enemies.forEach((enemy, index) => {
+                    log(`敌人${index + 1}: ${enemy.name} 位置(${enemy.x}, ${enemy.y})`);
+                });
+
+            } catch (error) {
+                log(`错误: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testBattleStart() {
+            log('开始测试战斗开始...');
+            try {
+                if (!game || game.enemies.length === 0) {
+                    log('请先创建敌人');
+                    return;
+                }
+
+                // 模拟点击第一个敌人
+                const firstEnemy = game.enemies[0];
+                log(`模拟点击敌人: ${firstEnemy.name}`);
+
+                // 开始战斗
+                game.startBattle(firstEnemy);
+                log('战斗开始成功');
+
+            } catch (error) {
+                log(`错误: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 页面加载完成后的初始化
+        window.onload = function() {
+            log('调试页面加载完成');
+            log('点击按钮开始测试游戏功能');
+        };
+    </script>
+</body>
+</html>

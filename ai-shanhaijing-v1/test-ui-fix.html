@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI修复验证</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .test-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            background: #2d5a3d;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #debug-output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>UI修复验证 - 耐克鲨鱼5级问题修复测试</h1>
+
+        <div class="test-info">
+            <h2>修复说明</h2>
+            <p>修复了renderMap()函数中的问题，现在会正确检查玩家数据是否已初始化。</p>
+            <p>如果玩家数据未初始化，会显示"玩家数据未初始化"而不是"耐克鲨鱼5级"。</p>
+        </div>
+
+        <div class="test-controls">
+            <button class="test-button" onclick="testGameWithoutPlayer()">测试无玩家数据</button>
+            <button class="test-button" onclick="testGameWithStickman()">测试木棒人</button>
+            <button class="test-button" onclick="testGameWithShark()">测试耐克鲨鱼</button>
+            <button class="test-button" onclick="testFullGameFlow()">测试完整游戏流程</button>
+            <button class="test-button" onclick="clearGame()">清空游戏</button>
+            <button class="test-button" onclick="clearDebug()">清除日志</button>
+        </div>
+
+        <div id="game-container"></div>
+
+        <div id="debug-output"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        let game;
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function clearDebug() {
+            debugLog = [];
+            updateDebugDisplay();
+        }
+
+        function testGameWithoutPlayer() {
+            try {
+                log('=== 测试无玩家数据的情况 ===');
+
+                game = new Game();
+                game.gameLayer = document.getElementById('game-container');
+
+                // 不初始化玩家，直接渲染地图
+                game.renderMap();
+
+                // 检查UI显示
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    const uiText = gameUI.textContent.trim();
+                    log('UI显示内容: ' + uiText);
+
+                    if (uiText.includes('玩家数据未初始化')) {
+                        log('✅ 修复成功！显示"玩家数据未初始化"而不是错误的角色信息');
+                    } else {
+                        log('❌ 修复失败！仍然显示错误的角色信息');
+                    }
+                }
+
+            } catch (error) {
+                log(`测试失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testGameWithStickman() {
+            try {
+                log('=== 测试木棒人显示 ===');
+
+                game = new Game();
+                game.selectedCharacter = 'stickman';
+                game.gameLayer = document.getElementById('game-container');
+
+                // 初始化玩家
+                game.initializePlayer();
+
+                // 渲染地图
+                game.renderMap();
+
+                // 检查UI显示
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    const uiText = gameUI.textContent.trim();
+                    log('UI显示内容: ' + uiText);
+                    log('期望显示: 木棒人 (等级 1)');
+
+                    if (uiText.includes('木棒人') && uiText.includes('等级 1')) {
+                        log('✅ 木棒人显示正确！');
+                    } else {
+                        log('❌ 木棒人显示错误！');
+                    }
+                }
+
+            } catch (error) {
+                log(`测试失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testGameWithShark() {
+            try {
+                log('=== 测试耐克鲨鱼显示 ===');
+
+                game = new Game();
+                game.selectedCharacter = 'shark';
+                game.gameLayer = document.getElementById('game-container');
+
+                // 初始化玩家
+                game.initializePlayer();
+
+                // 渲染地图
+                game.renderMap();
+
+                // 检查UI显示
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    const uiText = gameUI.textContent.trim();
+                    log('UI显示内容: ' + uiText);
+                    log('期望显示: 耐克鲨鱼 (等级 5)');
+
+                    if (uiText.includes('耐克鲨鱼') && uiText.includes('等级 5')) {
+                        log('✅ 耐克鲨鱼显示正确！');
+                    } else {
+                        log('❌ 耐克鲨鱼显示错误！');
+                    }
+                }
+
+            } catch (error) {
+                log(`测试失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testFullGameFlow() {
+            try {
+                log('=== 测试完整游戏流程 ===');
+
+                // 模拟从选择角色到进入游戏的完整流程
+                game = new Game();
+                game.gameLayer = document.getElementById('game-container');
+
+                log('1. 游戏对象创建完成');
+
+                // 模拟选择木棒人
+                game.selectedCharacter = 'stickman';
+                log(`2. 选择角色: ${game.selectedCharacter}`);
+
+                // 模拟游戏开始
+                game.initializePlayer();
+                log(`3. 玩家初始化: ${game.player.name} (等级 ${game.player.level})`);
+
+                // 渲染地图
+                game.renderMap();
+                log('4. 地图渲染完成');
+
+                // 检查UI显示
+                const gameUI = game.gameLayer.querySelector('.game-ui');
+                if (gameUI) {
+                    const uiText = gameUI.textContent.trim();
+                    log(`5. UI显示内容: ${uiText}`);
+
+                    // 验证显示
+                    if (uiText.includes('木棒人') && uiText.includes('等级 1')) {
+                        log('✅ 完整游戏流程测试通过！修复成功！');
+                    } else {
+                        log('❌ 完整游戏流程测试失败！');
+                    }
+                }
+
+            } catch (error) {
+                log(`测试失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function clearGame() {
+            try {
+                log('清空游戏...');
+
+                if (game && game.gameLayer) {
+                    game.gameLayer.innerHTML = '';
+                }
+
+                game = null;
+                log('游戏已清空');
+
+            } catch (error) {
+                log(`清空失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 页面加载完成
+        window.onload = function() {
+            log('UI修复验证页面加载完成');
+            log('点击按钮开始测试修复效果...');
+            log('');
+
+            // 自动运行第一个测试
+            setTimeout(() => {
+                testGameWithoutPlayer();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

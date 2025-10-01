@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏调试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .debug-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .debug-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .debug-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .debug-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #debug-output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>游戏调试 - 修复开始游戏问题</h1>
+
+        <div class="debug-info">
+            <h2>问题描述</h2>
+            <p>点击开始游戏后无法进入游戏界面，需要调试找出问题。</p>
+        </div>
+
+        <div class="debug-controls">
+            <button class="debug-button" onclick="testGameInitialization()">测试游戏初始化</button>
+            <button class="debug-button" onclick="testElements()">测试页面元素</button>
+            <button class="debug-button" onclick="testCharacterSelection()">测试角色选择</button>
+            <button class="debug-button" onclick="testStartGame()">测试开始游戏</button>
+            <button class="debug-button" onclick="clearDebug()">清除日志</button>
+        </div>
+
+        <div id="debug-output"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        let game;
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function clearDebug() {
+            debugLog = [];
+            updateDebugDisplay();
+        }
+
+        function testGameInitialization() {
+            log('=== 测试游戏初始化 ===');
+            try {
+                game = new Game();
+                log('✅ Game对象创建成功');
+
+                game.init();
+                log('✅ Game.init() 执行成功');
+
+                log(`当前选中的角色: ${game.selectedCharacter}`);
+                log(`游戏运行状态: ${game.gameRunning}`);
+
+            } catch (error) {
+                log(`❌ 游戏初始化失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testElements() {
+            log('=== 测试页面元素 ===');
+
+            const elements = [
+                'character-select',
+                'game-screen',
+                'start-game-btn'
+            ];
+
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    log(`✅ 找到元素: ${id}`);
+                    log(`   - className: ${element.className}`);
+                    if (id === 'character-select' || id === 'game-screen') {
+                        log(`   - 是否active: ${element.classList.contains('active')}`);
+                    }
+                } else {
+                    log(`❌ 找不到元素: ${id}`);
+                }
+            });
+        }
+
+        function testCharacterSelection() {
+            log('=== 测试角色选择 ===');
+
+            if (!game) {
+                log('❌ 游戏对象未初始化');
+                return;
+            }
+
+            // 模拟选择角色
+            game.selectedCharacter = 'stickman';
+            log(`选择角色: ${game.selectedCharacter}`);
+
+            // 测试开始按钮
+            const startBtn = document.getElementById('start-game-btn');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.classList.add('enabled');
+                log('✅ 开始游戏按钮已启用');
+            } else {
+                log('❌ 找不到开始游戏按钮');
+            }
+        }
+
+        function testStartGame() {
+            log('=== 测试开始游戏 ===');
+
+            if (!game) {
+                log('❌ 游戏对象未初始化');
+                return;
+            }
+
+            if (!game.selectedCharacter) {
+                log('❌ 没有选中的角色');
+                return;
+            }
+
+            try {
+                log('开始调用 startSelectedGame()...');
+                game.startSelectedGame();
+                log('✅ startSelectedGame() 执行完成');
+
+                // 检查界面切换
+                setTimeout(() => {
+                    const characterSelect = document.getElementById('character-select');
+                    const gameScreen = document.getElementById('game-screen');
+
+                    if (characterSelect && gameScreen) {
+                        log(`角色选择界面active状态: ${characterSelect.classList.contains('active')}`);
+                        log(`游戏界面active状态: ${gameScreen.classList.contains('active')}`);
+
+                        if (gameScreen.classList.contains('active')) {
+                            log('✅ 游戏界面切换成功');
+                        } else {
+                            log('❌ 游戏界面切换失败');
+                        }
+                    }
+                }, 100);
+
+            } catch (error) {
+                log(`❌ 开始游戏失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 页面加载完成后自动测试
+        window.onload = function() {
+            log('游戏调试页面加载完成');
+            log('点击按钮开始调试...');
+            log('');
+
+            // 自动测试元素
+            setTimeout(() => {
+                testElements();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

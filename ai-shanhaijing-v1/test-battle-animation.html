@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>战斗动画测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .battle-scene {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 150px;
+            height: 300px;
+        }
+
+        .battle-character {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .player-battle-character {
+            border-color: rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+        }
+
+        .enemy-battle-character {
+            border-color: rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+        }
+
+        .battle-character-image {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .battle-health-bar {
+            width: 180px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .battle-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff3333, #ff6666);
+            transition: width 0.3s ease;
+        }
+
+        .battle-character-name {
+            margin-top: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .test-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .test-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 复制游戏中的动画定义 */
+        /* 玩家攻击突进动画 */
+        .battle-character.player-attacking {
+            animation: playerAttackAnimation 0.6s ease-in-out;
+        }
+
+        @keyframes playerAttackAnimation {
+            0% {
+                transform: translateX(0) scale(1);
+                filter: brightness(1);
+            }
+            30% {
+                transform: translateX(80px) scale(1.1);
+                filter: brightness(1.3) drop-shadow(0 0 15px rgba(0, 255, 0, 0.8));
+            }
+            50% {
+                transform: translateX(100px) scale(1.2);
+                filter: brightness(1.5) drop-shadow(0 0 25px rgba(0, 255, 0, 1));
+            }
+            70% {
+                transform: translateX(80px) scale(1.1);
+                filter: brightness(1.3) drop-shadow(0 0 15px rgba(0, 255, 0, 0.8));
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                filter: brightness(1);
+            }
+        }
+
+        /* 敌人攻击突进动画 */
+        .battle-character.enemy-attacking {
+            animation: enemyAttackAnimation 0.6s ease-in-out;
+        }
+
+        @keyframes enemyAttackAnimation {
+            0% {
+                transform: translateX(0) scale(1);
+                filter: brightness(1);
+            }
+            30% {
+                transform: translateX(-80px) scale(1.1);
+                filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 0, 0, 0.8));
+            }
+            50% {
+                transform: translateX(-100px) scale(1.2);
+                filter: brightness(1.5) drop-shadow(0 0 25px rgba(255, 0, 0, 1));
+            }
+            70% {
+                transform: translateX(-80px) scale(1.1);
+                filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 0, 0, 0.8));
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                filter: brightness(1);
+            }
+        }
+
+        /* 受击后退动画 */
+        .battle-character.hit-recoil {
+            animation: characterHitAnimation 0.4s ease-in-out;
+        }
+
+        @keyframes characterHitAnimation {
+            0% {
+                transform: translateX(0);
+                filter: brightness(1);
+            }
+            25% {
+                transform: translateX(-15px);
+                filter: brightness(0.8) sepia(0.2);
+            }
+            50% {
+                transform: translateX(15px);
+                filter: brightness(0.6) sepia(0.3);
+            }
+            75% {
+                transform: translateX(-8px);
+                filter: brightness(0.9) sepia(0.1);
+            }
+            100% {
+                transform: translateX(0);
+                filter: brightness(1);
+            }
+        }
+
+        /* 受伤闪光效果 */
+        .battle-character.damage-flash {
+            animation: characterDamageFlash 0.3s ease-in-out;
+        }
+
+        @keyframes characterDamageFlash {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            25% {
+                filter: brightness(0.3) hue-rotate(180deg);
+            }
+            50% {
+                filter: brightness(2) hue-rotate(90deg);
+            }
+            75% {
+                filter: brightness(0.5) hue-rotate(270deg);
+            }
+        }
+
+        /* 骆驼吐沙特殊动画 */
+        .battle-character.camel-spit-attack {
+            animation: camelSpitAttackAnimation 1.5s ease-in-out;
+        }
+
+        @keyframes camelSpitAttackAnimation {
+            0% {
+                transform: translateX(0) scale(1) rotate(0deg);
+                filter: brightness(1) sepia(0);
+            }
+            15% {
+                transform: translateX(30px) scale(1.05) rotate(-5deg);
+                filter: brightness(1.2) sepia(0.1);
+            }
+            30% {
+                transform: translateX(60px) scale(1.1) rotate(-10deg);
+                filter: brightness(1.4) sepia(0.2) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+            50% {
+                transform: translateX(80px) scale(1.15) rotate(-15deg);
+                filter: brightness(1.6) sepia(0.3) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+            }
+            60% {
+                transform: translateX(100px) scale(1.2) rotate(-20deg);
+                filter: brightness(2) sepia(0.5) drop-shadow(0 0 40px rgba(255, 215, 0, 1)) hue-rotate(30deg);
+            }
+            70% {
+                transform: translateX(80px) scale(1.15) rotate(-15deg);
+                filter: brightness(1.6) sepia(0.3) drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+            }
+            85% {
+                transform: duration 60px) scale(1.1) rotate(-10deg);
+                filter: brightness(1.4) sepia(0.2) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+            100% {
+                transform: translateX(0) scale(1) rotate(0deg);
+                filter: brightness(1) sepia(0);
+            }
+        }
+
+        .info {
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>战斗动画测试页面</h1>
+
+        <div class="battle-scene">
+            <div class="battle-character player-battle-character" id="player">
+                <div class="battle-character-image">
+                    <img src="assets/images/冰箱骆驼.png" alt="玩家" width="160" height="160">
+                </div>
+                <div class="battle-health-bar">
+                    <div class="battle-health-fill" style="width: 80%"></div>
+                </div>
+                <div class="battle-character-name">玩家</div>
+            </div>
+
+            <div class="battle-character enemy-battle-character" id="enemy">
+                <div class="battle-character-image">
+                    <img src="assets/images/耐克鲨鱼.png" alt="敌人" width="160" height="160">
+                </div>
+                <div class="battle-health-bar">
+                    <div class="battle-health-fill" style="width: 60%"></div>
+                </div>
+                <div class="battle-character-name">敌人</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="test-btn" onclick="testPlayerAttack()">玩家普通攻击</button>
+            <button class="test-btn" onclick="testPlayerCamelAttack()">骆驼吐沙攻击</button>
+            <button class="test-btn" onclick="testEnemyAttack()">敌人攻击</button>
+            <button class="test-btn" onclick="testPlayerHit()">玩家受击</button>
+            <button class="test-btn" onclick="testEnemyHit()">敌人受击</button>
+            <button class="test-btn" onclick="testFullSequence()">完整攻击序列</button>
+        </div>
+
+        <div class="info">
+            点击按钮测试不同的战斗动画效果
+        </div>
+    </div>
+
+    <script>
+        function testPlayerAttack() {
+            const player = document.getElementById('player');
+            player.classList.remove('player-attacking', 'camel-spit-attack');
+            void player.offsetWidth; // 强制重排
+            player.classList.add('player-attacking');
+
+            setTimeout(() => {
+                const enemy = document.getElementById('enemy');
+                enemy.classList.add('hit-recoil');
+                setTimeout(() => enemy.classList.remove('hit-recoil'), 400);
+
+                enemy.classList.add('damage-flash');
+                setTimeout(() => enemy.classList.remove('damage-flash'), 300);
+            }, 300);
+
+            setTimeout(() => {
+                player.classList.remove('player-attacking');
+            }, 600);
+        }
+
+        function testPlayerCamelAttack() {
+            const player = document.getElementById('player');
+            player.classList.remove('player-attacking', 'camel-spit-attack');
+            void player.offsetWidth; // 强制重排
+            player.classList.add('camel-spit-attack');
+
+            setTimeout(() => {
+                const enemy = document.getElementById('enemy');
+                enemy.classList.add('hit-recoil');
+                setTimeout(() => enemy.classList.remove('hit-recoil'), 400);
+
+                enemy.classList.add('damage-flash');
+                setTimeout(() => enemy.classList.remove('damage-flash'), 300);
+            }, 900); // 骆驼吐沙的命中时间更晚
+
+            setTimeout(() => {
+                player.classList.remove('camel-spit-attack');
+            }, 1500);
+        }
+
+        function testEnemyAttack() {
+            const enemy = document.getElementById('enemy');
+            enemy.classList.remove('enemy-attacking');
+            void enemy.offsetWidth; // 强制重排
+            enemy.classList.add('enemy-attacking');
+
+            setTimeout(() => {
+                const player = document.getElementById('player');
+                player.classList.add('hit-recoil');
+                setTimeout(() => player.classList.remove('hit-recoil'), 400);
+
+                player.classList.add('damage-flash');
+                setTimeout(() => player.classList.remove('damage-flash'), 300);
+            }, 300);
+
+            setTimeout(() => {
+                enemy.classList.remove('enemy-attacking');
+            }, 600);
+        }
+
+        function testPlayerHit() {
+            const player = document.getElementById('player');
+            player.classList.add('hit-recoil');
+            setTimeout(() => player.classList.remove('hit-recoil'), 400);
+
+            player.classList.add('damage-flash');
+            setTimeout(() => player.classList.remove('damage-flash'), 300);
+        }
+
+        function testEnemyHit() {
+            const enemy = document.getElementById('enemy');
+            enemy.classList.add('hit-recoil');
+            setTimeout(() => enemy.classList.remove('hit-recoil'), 400);
+
+            enemy.classList.add('damage-flash');
+            setTimeout(() => enemy.classList.remove('damage-flash'), 300);
+        }
+
+        function testFullSequence() {
+            // 玩家攻击
+            testPlayerAttack();
+
+            // 敌人反击
+            setTimeout(() => {
+                testEnemyAttack();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

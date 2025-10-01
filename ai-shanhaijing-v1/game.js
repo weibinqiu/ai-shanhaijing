@@ -10,24 +10,38 @@ class Game {
     }
 
     init() {
-        console.log('Game初始化开始');
-        this.setupCharacterSelectionEvents();
-        this.setupControls();
-        console.log('Game初始化完成');
+        console.log('🎮 Game初始化开始');
+
+        // 确保DOM已加载
+        if (document.readyState === 'loading') {
+            console.log('⏳ 等待DOM加载完成...');
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupCharacterSelectionEvents();
+                this.setupControls();
+                console.log('✅ Game初始化完成');
+            });
+        } else {
+            console.log('📄 DOM已加载，直接初始化');
+            this.setupCharacterSelectionEvents();
+            this.setupControls();
+            console.log('✅ Game初始化完成');
+        }
     }
 
     setupCharacterSelectionEvents() {
-        console.log('设置角色选择事件监听器');
+        console.log('🎯 设置角色选择事件监听器');
         const characterCards = document.querySelectorAll('.character-card');
+        console.log('📋 找到角色卡片数量:', characterCards.length);
 
-        characterCards.forEach(card => {
+        characterCards.forEach((card, index) => {
+            console.log(`🎭 卡片 ${index + 1}:`, card.dataset.character);
             card.addEventListener('click', () => {
-                console.log('角色卡片被点击');
+                console.log('🖱️ 角色卡片被点击:', card.dataset.character);
                 this.selectCharacter(card.dataset.character);
             });
         });
 
-        console.log('角色选择事件监听器设置完成');
+        console.log('✅ 角色选择事件监听器设置完成');
     }
 
     selectCharacter(characterType) {
@@ -85,6 +99,173 @@ class Game {
         }
     }
 
+    // 标记当前战斗的怪物为已击败
+    markCurrentEnemyDefeated() {
+        if (!this.battle || !this.enemies) return;
+
+        const enemyName = this.battle.enemy.name;
+        const defeatedEnemy = this.enemies.find(enemy => enemy.name === enemyName);
+
+        if (defeatedEnemy) {
+            defeatedEnemy.defeated = true;
+            // 隐藏已击败的怪物
+            if (defeatedEnemy.element) {
+                defeatedEnemy.element.style.display = 'none';
+            }
+            console.log(`怪物 ${enemyName} 已被击败并标记`);
+        }
+    }
+
+    // 重置所有怪物的战斗状态
+    resetEnemiesBattleStatus() {
+        if (!this.enemies || this.enemies.length === 0) return;
+
+        this.enemies.forEach(enemy => {
+            enemy.inBattle = false;
+        });
+        console.log('所有怪物战斗状态已重置');
+    }
+
+    // 播放战斗动画
+    playBattleAnimation(attacker, skillName) {
+        console.log('🎬 播放战斗动画:', attacker, skillName);
+
+        if (attacker === 'player') {
+            // 玩家攻击动画
+            const playerElement = document.querySelector('.player-battle-character');
+            console.log('🎯 找到玩家元素:', playerElement);
+
+            if (playerElement) {
+                // 清除之前的动画类
+                playerElement.classList.remove('player-attacking', 'camel-spit-attack');
+
+                // 根据技能类型选择动画
+                if (skillName === '骆驼吐沙') {
+                    console.log('🐪 添加骆驼吐沙动画类');
+                    // 强制重排以确保动画能正确触发
+                    void playerElement.offsetWidth;
+                    playerElement.classList.add('camel-spit-attack');
+                    console.log('🐪 元素类列表:', playerElement.className);
+                    // 骆驼吐沙动画1.5秒后移除
+                    setTimeout(() => {
+                        console.log('🐪 移除骆驼吐沙动画类');
+                        playerElement.classList.remove('camel-spit-attack');
+                    }, 1500);
+                } else {
+                    console.log('⚔️ 添加普通攻击动画类');
+                    // 强制重排以确保动画能正确触发
+                    void playerElement.offsetWidth;
+                    playerElement.classList.add('player-attacking');
+                    console.log('⚔️ 元素类列表:', playerElement.className);
+                    // 普通攻击动画0.6秒后移除
+                    setTimeout(() => {
+                        console.log('⚔️ 移除普通攻击动画类');
+                        playerElement.classList.remove('player-attacking');
+                    }, 600);
+                }
+            }
+
+            // 敌人受击动画（延迟时间根据技能类型调整）
+            const hitDelay = skillName === '骆驼吐沙' ? 900 : 300;
+            setTimeout(() => {
+                this.playHitAnimation('enemy');
+            }, hitDelay);
+
+        } else if (attacker === 'enemy') {
+            // 敌人攻击动画
+            const enemyElement = document.querySelector('.enemy-battle-character');
+            if (enemyElement) {
+                enemyElement.classList.remove('enemy-attacking');
+                // 强制重排以确保动画能正确触发
+                void enemyElement.offsetWidth;
+                enemyElement.classList.add('enemy-attacking');
+
+                // 0.6秒后移除动画类
+                setTimeout(() => {
+                    enemyElement.classList.remove('enemy-attacking');
+                }, 600);
+            }
+
+            // 玩家受击动画（延迟0.3秒）
+            setTimeout(() => {
+                this.playHitAnimation('player');
+            }, 300);
+        }
+    }
+
+    // 播放受击动画
+    playHitAnimation(target) {
+        if (target === 'player') {
+            const playerElement = document.querySelector('.player-battle-character');
+            if (playerElement) {
+                // 先播放后退动画
+                void playerElement.offsetWidth;
+                playerElement.classList.add('hit-recoil');
+                setTimeout(() => {
+                    playerElement.classList.remove('hit-recoil');
+                }, 400);
+
+                // 同时播放闪光效果
+                void playerElement.offsetWidth;
+                playerElement.classList.add('damage-flash');
+                setTimeout(() => {
+                    playerElement.classList.remove('damage-flash');
+                }, 300);
+            }
+        } else if (target === 'enemy') {
+            const enemyElement = document.querySelector('.enemy-battle-character');
+            if (enemyElement) {
+                // 先播放后退动画
+                void enemyElement.offsetWidth;
+                enemyElement.classList.add('hit-recoil');
+                setTimeout(() => {
+                    enemyElement.classList.remove('hit-recoil');
+                }, 400);
+
+                // 同时播放闪光效果
+                void enemyElement.offsetWidth;
+                enemyElement.classList.add('damage-flash');
+                setTimeout(() => {
+                    enemyElement.classList.remove('damage-flash');
+                }, 300);
+            }
+        }
+    }
+
+    // 播放技能音效
+    playSkillSound(skillName) {
+        if (skillName === '骆驼吐沙') {
+            // 冰箱骆驼的特殊技能音效
+            const camelSpitSound = document.getElementById('camel-spit-sound');
+            if (camelSpitSound) {
+                camelSpitSound.currentTime = 0;
+                camelSpitSound.play().catch(error => {
+                    console.log('骆驼吐沙音效播放失败:', error);
+                });
+            }
+        } else {
+            // 其他技能使用通用击打音效
+            const skillSound = document.getElementById('skill-sound');
+            if (skillSound) {
+                skillSound.currentTime = 0;
+                skillSound.play().catch(error => {
+                    console.log('技能音效播放失败:', error);
+                });
+            }
+        }
+    }
+
+    // 播放金币音效
+    playGoldSound() {
+        const goldSound = document.getElementById('gold-sound');
+        if (goldSound) {
+            goldSound.currentTime = 0;
+            goldSound.play().catch(error => {
+                console.log('金币音效播放失败:', error);
+            });
+        }
+    }
+
     // 显示开始游戏按钮
     showGameStartButton(characterType) {
         const startBtn = document.getElementById('start-game-btn');
@@ -137,8 +318,8 @@ class Game {
         console.log('开始渲染地图...');
         this.renderMap();
 
-        console.log('开始创建NPC...');
-        this.createNPCs();
+        console.log('开始创建玩家角色元素...');
+        this.createPlayerElement();
 
         console.log('开始创建敌人...');
         this.createEnemies();
@@ -152,6 +333,9 @@ class Game {
     }
 
     initializePlayer() {
+        console.log('开始初始化玩家角色...');
+        console.log('当前选中的角色:', this.selectedCharacter);
+
         const characterData = {
             stickman: {
                 name: '木棒人',
@@ -161,7 +345,7 @@ class Game {
                 maxHealth: 80,
                 attack: 20,
                 defense: 10,
-                speed: 12,
+                speed: 4,
                 skills: ['木棒攻击', '快速移动', '闪避'],
                 color: '#8B4513'
             },
@@ -173,7 +357,7 @@ class Game {
                 maxHealth: 120,
                 attack: 35,
                 defense: 25,
-                speed: 10,
+                speed: 5,
                 skills: ['鲨鱼咬击', '高速冲击', '耐克加速'],
                 color: '#4682B4'
             },
@@ -185,9 +369,21 @@ class Game {
                 maxHealth: 100,
                 attack: 30,
                 defense: 18,
-                speed: 11,
+                speed: 6,
                 skills: ['咖啡飞镖', '瞬移', '咖啡因爆发'],
                 color: '#4B0082'
+            },
+            'tire-frog': {
+                name: '轮胎青蛙',
+                level: 8,
+                image: 'assets/images/轮胎青蛙.png',
+                health: 130,
+                maxHealth: 130,
+                attack: 25,
+                defense: 20,
+                speed: 7,
+                skills: ['轮胎碾压', '弹跳攻击', '橡胶防御'],
+                color: '#32CD32'
             },
             'ice-camel': {
                 name: '冰箱骆驼',
@@ -197,13 +393,18 @@ class Game {
                 maxHealth: 150,
                 attack: 18,
                 defense: 35,
-                speed: 8,
+                speed: 3,
                 skills: ['骆驼吐沙', '冰冻', '冰箱护盾'],
                 color: '#00CED1'
             }
         };
 
         const data = characterData[this.selectedCharacter];
+
+        // 添加调试信息
+        console.log('角色数据:', data);
+        console.log('角色名称:', data ? data.name : '未找到');
+        console.log('角色等级:', data ? data.level : '未找到');
 
         this.player = {
             id: 'player',
@@ -217,6 +418,9 @@ class Game {
             speed: data.speed,
             skills: data.skills,
             color: data.color,
+            image: data.image,
+            exp: 0,
+            gold: 0,
             x: 400,
             y: 300,
             element: null
@@ -229,10 +433,29 @@ class Game {
         console.log('渲染地图...');
         if (!this.gameLayer) return;
 
+        // 检查玩家数据是否已初始化
+        let playerUI = '';
+        if (this.player && this.player.name) {
+            playerUI = `
+                <div style="font-weight: bold; margin-bottom: 10px;">${this.player.name} (等级 ${this.player.level})</div>
+                <div>生命值: ${this.player.health}/${this.player.maxHealth}</div>
+                <div>攻击: ${this.player.attack} | 防御: ${this.player.defense}</div>
+                <div>速度: ${this.player.speed}</div>
+                <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
+                    使用 WASD 或方向键移动
+                </div>
+            `;
+        } else {
+            playerUI = `
+                <div style="font-weight: bold; margin-bottom: 10px;">玩家数据未初始化</div>
+                <div>请选择角色并开始游戏</div>
+            `;
+        }
+
         // 创建游戏世界，设置足够大的尺寸以支持无边界移动
         this.gameLayer.innerHTML = `
             <div class="game-world" style="
-                position: absolute;
+                position: relative;
                 width: 5000px;
                 height: 5000px;
                 background: linear-gradient(45deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
@@ -252,18 +475,9 @@ class Game {
                 border-radius: 10px;
                 z-index: 1000;
             ">
-                <div style="font-weight: bold; margin-bottom: 10px;">${this.player.name} (等级 ${this.player.level})</div>
-                <div>生命值: ${this.player.health}/${this.player.maxHealth}</div>
-                <div>攻击: ${this.player.attack} | 防御: ${this.player.defense}</div>
-                <div>速度: ${this.player.speed}</div>
-                <div style="margin-top: 10px; font-size: 12px; opacity: 0.8;">
-                    使用 WASD 或方向键移动
-                </div>
+                ${playerUI}
             </div>
         `;
-
-        // 创建玩家角色元素
-        this.createPlayerElement();
 
         console.log('地图渲染完成');
     }
@@ -271,43 +485,50 @@ class Game {
     createPlayerElement() {
         if (!this.player) return;
 
+        // 角色图片映射
+        const playerImages = {
+            'stickman': 'assets/images/木棒人.png',
+            'coffee-ninja': 'assets/images/咖啡忍者.png',
+            'shark': 'assets/images/耐克鲨鱼.png',
+            'tire-frog': 'assets/images/轮胎青蛙.png',
+            'ice-camel': 'assets/images/冰箱骆驼.png'
+        };
+
         // 创建玩家角色DOM元素
         const playerElement = document.createElement('div');
         playerElement.className = 'player-character';
         playerElement.style.cssText = `
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            border: 3px solid white;
+            border: 3px solid #FFD700;
+            background: linear-gradient(45deg, #4169E1, #1E90FF);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             z-index: 100;
             transition: all 0.1s ease;
-            left: ${this.player.x - this.camera.x}px;
-            top: ${this.player.y - this.camera.y}px;
+            left: ${this.player.x - 40}px;
+            top: ${this.player.y - 40}px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            font-size: 24px;
         `;
 
-        // 使用角色的图片
-        const playerImg = document.createElement('img');
-        playerImg.src = this.player.image;
-        playerImg.style.cssText = `
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        `;
-        playerElement.appendChild(playerImg);
+        // 使用角色图片
+        const playerImageSrc = playerImages[this.selectedCharacter] || 'assets/images/木棒人.png';
+        playerElement.innerHTML = `<img src="${playerImageSrc}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="${this.player.name}">`;
+        playerElement.title = this.player.name;
 
         // 添加到游戏世界
         const gameWorld = this.gameLayer.querySelector('.game-world');
         if (gameWorld) {
             gameWorld.appendChild(playerElement);
             this.player.element = playerElement;
-            console.log('玩家角色元素创建完成');
+            console.log('玩家角色元素创建完成，位置：', this.player.x, this.player.y);
+        } else {
+            console.error('找不到游戏世界元素！');
         }
     }
 
@@ -317,8 +538,136 @@ class Game {
         // 更新玩家位置
         this.updatePlayer();
 
+        // 更新敌人位置
+        this.updateEnemies();
+
+        // 检测玩家与敌人的碰撞
+        this.checkCollisions();
+
         // 继续游戏循环
         requestAnimationFrame(() => this.gameLoop());
+    }
+
+    updateEnemies() {
+        if (!this.enemies || this.enemies.length === 0) return;
+
+        const currentTime = Date.now();
+
+        this.enemies.forEach(enemy => {
+            if (!enemy.element) return;
+
+            // 每隔一定时间改变移动方向
+            if (currentTime - enemy.lastMoveTime > 2000 + Math.random() * 3000) {
+                enemy.moveDirection = Math.random() * Math.PI * 2;
+                enemy.lastMoveTime = currentTime;
+            }
+
+            // 计算新位置
+            const moveDistance = enemy.speed * 0.5;
+            const newX = enemy.x + Math.cos(enemy.moveDirection) * moveDistance;
+            const newY = enemy.y + Math.sin(enemy.moveDirection) * moveDistance;
+
+            // 边界检查（确保敌人在地图范围内）
+            if (newX >= 50 && newX <= 4950 && newY >= 50 && newY <= 4950) {
+                enemy.x = newX;
+                enemy.y = newY;
+
+                // 更新DOM元素位置
+                enemy.element.style.left = (enemy.x - 35) + 'px';
+                enemy.element.style.top = (enemy.y - 35) + 'px';
+            } else {
+                // 碰到边界时改变方向
+                enemy.moveDirection = Math.random() * Math.PI * 2;
+            }
+        });
+    }
+
+    // 检测玩家与敌人的碰撞
+    checkCollisions() {
+        if (!this.player || !this.enemies || this.enemies.length === 0) return;
+
+        // 如果已经在战斗中，不进行新的碰撞检测
+        if (this.battle) return;
+
+        this.enemies.forEach((enemy, index) => {
+            if (!enemy.element) return;
+
+            // 跳过已击败的怪物
+            if (enemy.defeated) return;
+
+            // 计算玩家与敌人的距离
+            const distance = Math.sqrt(
+                Math.pow(this.player.x - enemy.x, 2) +
+                Math.pow(this.player.y - enemy.y, 2)
+            );
+
+            // 碰撞距离阈值（玩家半径40px + 敌人半径35px = 75px）
+            const collisionDistance = 75;
+
+            if (distance < collisionDistance) {
+                console.log(`检测到碰撞！玩家与${enemy.name}，距离：${distance.toFixed(2)}`);
+
+                // 碰撞视觉效果
+                this.showCollisionEffect(enemy);
+
+                // 检查是否可以进入战斗
+                if (!enemy.inBattle && !this.battle) {
+                    enemy.inBattle = true;
+
+                    // 延迟一点进入战斗，让玩家看到碰撞效果
+                    setTimeout(() => {
+                        this.startBattle(enemy);
+                    }, 500);
+                }
+            }
+
+            // 接近警告效果（距离小于80px时）
+            else if (distance < 80) {
+                this.showWarningEffect(enemy, distance);
+            }
+        });
+    }
+
+    // 碰撞视觉效果
+    showCollisionEffect(enemy) {
+        if (!enemy.element) return;
+
+        // 玩家闪烁效果
+        if (this.player.element) {
+            this.player.element.style.animation = 'collisionFlash 0.5s ease-in-out';
+            setTimeout(() => {
+                if (this.player.element) {
+                    this.player.element.style.animation = '';
+                }
+            }, 500);
+        }
+
+        // 敌人闪烁效果
+        enemy.element.style.animation = 'collisionFlash 0.5s ease-in-out';
+        setTimeout(() => {
+            if (enemy.element) {
+                enemy.element.style.animation = '';
+            }
+        }, 500);
+
+        console.log(`碰撞效果：${enemy.name}`);
+    }
+
+    // 接近警告效果
+    showWarningEffect(enemy, distance) {
+        if (!enemy.element || enemy.warningShown) return;
+
+        // 显示警告边框
+        enemy.element.style.boxShadow = '0 0 20px rgba(255, 255, 0, 0.8)';
+        enemy.warningShown = true;
+
+        // 1秒后移除警告
+        setTimeout(() => {
+            if (enemy.element) {
+                enemy.element.style.boxShadow = '0 2px 4px rgba(0,0,0,0.5)';
+                enemy.warningShown = false;
+            }
+        }, 1000);
     }
 
     playSound(soundName) {
@@ -403,8 +752,11 @@ class Game {
         if (!this.player.element) return;
 
         // 使用绝对定位，角色位置相对于游戏世界
-        this.player.element.style.left = (this.player.x - 30) + 'px'; // 30是角色宽度的一半
-        this.player.element.style.top = (this.player.y - 30) + 'px'; // 30是角色高度的一半
+        this.player.element.style.left = (this.player.x - 40) + 'px'; // 40是角色宽度的一半
+        this.player.element.style.top = (this.player.y - 40) + 'px'; // 40是角色高度的一半
+
+        // 调试信息
+        console.log('角色位置更新：x=', this.player.x, 'y=', this.player.y);
     }
 
     createNPCs() {
@@ -489,10 +841,13 @@ class Game {
     // 创建敌人
     createEnemies() {
         const enemyData = [
-            { type: 'slime', x: 600, y: 400, name: '史莱姆', health: 50, attack: 8, defense: 3, level: 1 },
-            { type: 'goblin', x: 1000, y: 600, name: '哥布林', health: 80, attack: 12, defense: 5, level: 2 },
-            { type: 'wolf', x: 1400, y: 300, name: '野狼', health: 120, attack: 18, defense: 8, level: 3 },
-            { type: 'dragon', x: 1800, y: 800, name: '小龙', health: 200, attack: 25, defense: 15, level: 5 }
+            { type: '木棒人', x: 600, y: 400, name: '野生木棒人', health: 60, attack: 15, defense: 8, level: 1, speed: 2, image: 'assets/images/木棒人.png' },
+            { type: '咖啡忍者', x: 1000, y: 600, name: '叛逃忍者', health: 90, attack: 20, defense: 12, level: 3, speed: 3, image: 'assets/images/咖啡忍者.png' },
+            { type: '耐克鲨鱼', x: 1400, y: 300, name: '耐克鲨鱼', health: 120, attack: 28, defense: 15, level: 4, speed: 4, image: 'assets/images/耐克鲨鱼.png' },
+            { type: '轮胎青蛙', x: 1800, y: 800, name: '轮胎青蛙', health: 150, attack: 25, defense: 20, level: 6, speed: 5, image: 'assets/images/轮胎青蛙.png' },
+            { type: '冰箱骆驼', x: 800, y: 900, name: '流浪骆驼', health: 180, attack: 22, defense: 25, level: 8, speed: 2, image: 'assets/images/冰箱骆驼.png' },
+            { type: '腕龙', x: 1200, y: 200, name: '小腕龙', health: 250, attack: 35, defense: 18, level: 10, speed: 3, image: 'assets/images/腕龙.png' },
+            { type: '霸王龙', x: 1600, y: 700, name: '年轻霸王龙', health: 300, attack: 40, defense: 22, level: 12, speed: 4, image: 'assets/images/霸王龙.png' }
         ];
 
         this.enemies = [];
@@ -502,31 +857,36 @@ class Game {
             enemyElement.className = 'enemy-character';
             enemyElement.style.cssText = `
                 position: absolute;
-                width: 40px;
-                height: 40px;
+                width: 70px;
+                height: 70px;
                 border-radius: 50%;
                 border: 2px solid #ff0000;
-                background: #8B0000;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 overflow: hidden;
                 z-index: 60;
-                left: ${enemy.x - 20}px;
-                top: ${enemy.y - 20}px;
+                left: ${enemy.x - 35}px;
+                top: ${enemy.y - 35}px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.5);
                 cursor: pointer;
                 transition: all 0.3s ease;
             `;
 
-            // 添加敌人图标
-            const enemyIcons = {
-                'slime': '🟢',
-                'goblin': '👺',
-                'wolf': '🐺',
-                'dragon': '🐉'
+            // 敌人图片映射
+            const enemyImages = {
+                '木棒人': 'assets/images/木棒人.png',
+                '咖啡忍者': 'assets/images/咖啡忍者.png',
+                '耐克鲨鱼': 'assets/images/耐克鲨鱼.png',
+                '轮胎青蛙': 'assets/images/轮胎青蛙.png',
+                '冰箱骆驼': 'assets/images/冰箱骆驼.png',
+                '腕龙': 'assets/images/腕龙.png',
+                '霸王龙': 'assets/images/霸王龙.png'
             };
-            enemyElement.innerHTML = `<span style="font-size: 20px;">${enemyIcons[enemy.type] || '👾'}</span>`;
+
+            // 使用敌人图片
+            const enemyImageSrc = enemyImages[enemy.type] || 'assets/images/木棒人.png';
+            enemyElement.innerHTML = `<img src="${enemyImageSrc}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" alt="${enemy.name}">`;
 
             // 添加敌人名称标签
             const nameLabel = document.createElement('div');
@@ -544,15 +904,12 @@ class Game {
             `;
             enemyElement.appendChild(nameLabel);
 
-            // 添加点击事件触发战斗
-            enemyElement.addEventListener('click', () => {
-                this.startBattle(enemy);
-            });
-
-            // 添加悬停效果
+            // 添加悬停效果（可选）
             enemyElement.addEventListener('mouseenter', () => {
-                enemyElement.style.transform = 'scale(1.1)';
-                enemyElement.style.boxShadow = '0 4px 8px rgba(255,0,0,0.6)';
+                if (!this.battle) {
+                    enemyElement.style.transform = 'scale(1.1)';
+                    enemyElement.style.boxShadow = '0 4px 8px rgba(255,0,0,0.6)';
+                }
             });
 
             enemyElement.addEventListener('mouseleave', () => {
@@ -566,12 +923,20 @@ class Game {
                 gameWorld.appendChild(enemyElement);
                 this.enemies.push({
                     element: enemyElement,
-                    ...enemy
+                    ...enemy,
+                    inBattle: false, // 初始化战斗状态为false
+                    moveTimer: 0,
+                    moveDirection: Math.random() * Math.PI * 2, // 随机初始方向
+                    lastMoveTime: Date.now()
                 });
+                console.log('敌人创建成功：', enemy.name, '位置：', enemy.x, enemy.y);
+            } else {
+                console.error('找不到游戏世界元素，无法创建敌人！');
             }
         });
 
         console.log('敌人生成完成，共生成', this.enemies.length, '个敌人');
+        console.log('所有敌人列表：', this.enemies.map(e => ({ name: e.name, x: e.x, y: e.y })));
     }
 
     // 开始战斗
@@ -587,7 +952,8 @@ class Game {
                 maxHealth: enemy.health,
                 attack: enemy.attack,
                 defense: enemy.defense,
-                level: enemy.level
+                level: enemy.level,
+                image: enemy.image
             },
             player: {
                 health: this.player.health,
@@ -620,10 +986,11 @@ class Game {
         // 初始化战斗界面
         this.initBattleInterface();
 
-        // 开始战斗
+        // 开始战斗 - 增加延迟确保界面完全渲染
         setTimeout(() => {
+            console.log('🎮 开始战斗回合');
             this.startBattleTurn();
-        }, 1000);
+        }, 1500);
     }
 
     // 初始化战斗界面
@@ -667,13 +1034,19 @@ class Game {
         const enemyName = document.querySelector('.enemy-battle-character .battle-character-name');
 
         if (enemyImage) {
-            const enemyIcons = {
-                'slime': '🟢',
-                'goblin': '👺',
-                'wolf': '🐺',
-                'dragon': '🐉'
-            };
-            enemyImage.innerHTML = `<span style="font-size: 80px;">${enemyIcons[this.battle.enemy.name] || '👾'}</span>`;
+            // 使用敌人的实际图片
+            const enemyImg = document.createElement('img');
+            enemyImg.src = this.battle.enemy.image || 'assets/images/木棒人.png';
+            enemyImg.style.cssText = `
+                width: 120px;
+                height: 120px;
+                object-fit: cover;
+                border-radius: 10px;
+                border: 2px solid #ff4444;
+            `;
+            enemyImg.alt = this.battle.enemy.name;
+            enemyImage.innerHTML = '';
+            enemyImage.appendChild(enemyImg);
         }
 
         if (enemyHealth) {
@@ -751,6 +1124,12 @@ class Game {
 
         this.addBattleLog(`使用技能: ${skillName}`);
 
+        // 播放技能音效
+        this.playSkillSound(skillName);
+
+        // 播放攻击动画
+        this.playBattleAnimation('player', skillName);
+
         // 计算伤害
         const baseDamage = this.battle.player.attack;
         const skillDamage = this.getSkillDamage(skillName, baseDamage);
@@ -777,7 +1156,7 @@ class Game {
 
         // 切换到敌人回合
         this.battle.turn = 'enemy';
-        setTimeout(() => this.startBattleTurn(), 1000);
+        setTimeout(() => this.startBattleTurn(), 1500); // 给动画更多时间播放
     }
 
     // 获取技能伤害
@@ -809,6 +1188,9 @@ class Game {
 
         this.addBattleLog(`敌人使用${skillName}`);
 
+        // 播放敌人攻击动画
+        this.playBattleAnimation('enemy', skillName);
+
         // 计算伤害
         const baseDamage = this.battle.enemy.attack;
         const skillDamage = this.getEnemySkillDamage(skillName, baseDamage);
@@ -835,7 +1217,7 @@ class Game {
 
         // 切换到玩家回合
         this.battle.turn = 'player';
-        setTimeout(() => this.startBattleTurn(), 1000);
+        setTimeout(() => this.startBattleTurn(), 1500); // 给动画更多时间播放
     }
 
     // 获取敌人技能伤害
@@ -882,6 +1264,14 @@ class Game {
 
         console.log(`战斗结束，${playerVictory ? '胜利' : '失败'}！`);
 
+        // 重置所有怪物的战斗状态
+        this.resetEnemiesBattleStatus();
+
+        // 如果胜利，标记当前战斗的怪物为已击败
+        if (playerVictory) {
+            this.markCurrentEnemyDefeated();
+        }
+
         if (playerVictory) {
             // 显示胜利界面
             const victoryScreen = document.querySelector('.victory-screen');
@@ -891,11 +1281,16 @@ class Game {
                 document.getElementById('victory-damage').textContent = this.battle.playerDamageDealt;
                 document.getElementById('victory-taken').textContent = this.battle.playerDamageTaken;
                 victoryScreen.style.display = 'block';
+
+                // 播放金币音效
+                this.playGoldSound();
             }
 
-            // 更新玩家经验值
+            // 更新玩家经验值和金币
             this.player.exp += this.battle.playerExpGain;
+            this.player.gold += this.battle.playerGoldGain;
             this.addBattleLog(`获得经验值: ${this.battle.playerExpGain}`);
+            this.addBattleLog(`获得金币: ${this.battle.playerGoldGain}`);
             this.checkLevelUp();
         } else {
             // 战斗失败

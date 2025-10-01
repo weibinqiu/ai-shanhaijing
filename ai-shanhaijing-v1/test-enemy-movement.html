@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敌人移动和战斗测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .test-button {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        #game-container {
+            width: 800px;
+            height: 600px;
+            background: #2d5a3d;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        #debug-output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .stats-panel {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .enemy-list {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .enemy-item {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>敌人移动和战斗测试页面</h1>
+
+        <div class="test-info">
+            <h2>功能说明</h2>
+            <p>此页面用于测试敌人的随机移动和战斗功能。敌人会使用images文件夹下的png图片，并在地图中随机移动。</p>
+        </div>
+
+        <div class="test-controls">
+            <button class="test-button" onclick="initGame()">初始化游戏</button>
+            <button class="test-button" onclick="createPlayer()" id="createPlayerBtn" disabled>创建玩家</button>
+            <button class="test-button" onclick="spawnEnemies()" id="spawnEnemiesBtn" disabled>生成敌人</button>
+            <button class="test-button" onclick="startMovement()" id="startMoveBtn" disabled>开始移动</button>
+            <button class="test-button" onclick="stopMovement()" id="stopMoveBtn" disabled>停止移动</button>
+            <button class="test-button" onclick="testBattle()" id="testBattleBtn" disabled>测试战斗</button>
+            <button class="test-button" onclick="clearGame()">清空游戏</button>
+            <button class="test-button" onclick="clearDebug()">清除日志</button>
+        </div>
+
+        <div id="game-container"></div>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <strong>游戏状态:</strong> <span id="game-status">未初始化</span>
+            </div>
+            <div class="stat-item">
+                <strong>玩家状态:</strong> <span id="player-status">未创建</span>
+            </div>
+            <div class="stat-item">
+                <strong>敌人数量:</strong> <span id="enemy-count">0</span>
+            </div>
+            <div class="stat-item">
+                <strong>移动状态:</strong> <span id="move-status">停止</span>
+            </div>
+        </div>
+
+        <div class="enemy-list">
+            <strong>敌人列表:</strong>
+            <div id="enemy-list-content">暂无敌人</div>
+        </div>
+
+        <div id="debug-output"></div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        let game;
+        let gameRunning = false;
+        let moveInterval;
+        let debugLog = [];
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.textContent = debugLog.join('\n');
+            debugDiv.scrollTop = debugDiv.scrollHeight;
+        }
+
+        function clearDebug() {
+            debugLog = [];
+            updateDebugDisplay();
+        }
+
+        function updateStatus() {
+            document.getElementById('game-status').textContent = game ? '已初始化' : '未初始化';
+            document.getElementById('player-status').textContent = game && game.player ? '已创建' : '未创建';
+            document.getElementById('enemy-count').textContent = game && game.enemies ? game.enemies.length : 0;
+            document.getElementById('move-status').textContent = gameRunning ? '运行中' : '停止';
+
+            updateEnemyList();
+        }
+
+        function updateEnemyList() {
+            const listContent = document.getElementById('enemy-list-content');
+            if (!game || !game.enemies || game.enemies.length === 0) {
+                listContent.innerHTML = '暂无敌人';
+                return;
+            }
+
+            listContent.innerHTML = game.enemies.map((enemy, index) =>
+                `<div class="enemy-item">
+                    ${index + 1}. ${enemy.name} - 位置(${Math.round(enemy.x)}, ${Math.round(enemy.y)}) - 等级${enemy.level}
+                </div>`
+            ).join('');
+        }
+
+        function initGame() {
+            try {
+                log('开始初始化游戏...');
+                game = new Game();
+                game.selectedCharacter = 'stickman';
+                game.gameLayer = document.getElementById('game-container');
+
+                log('游戏对象创建成功');
+                updateStatus();
+
+                document.getElementById('createPlayerBtn').disabled = false;
+                document.getElementById('spawnEnemiesBtn').disabled = false;
+
+                log('可以创建玩家和生成敌人了');
+            } catch (error) {
+                log(`初始化失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function createPlayer() {
+            try {
+                log('开始创建玩家...');
+                game.initializePlayer();
+                game.renderMap();
+
+                log(`玩家创建成功: ${game.player.name}，位置(${game.player.x}, ${game.player.y})`);
+                updateStatus();
+
+                document.getElementById('startMoveBtn').disabled = false;
+
+                log('玩家创建完成，可以生成敌人了');
+            } catch (error) {
+                log(`创建玩家失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function spawnEnemies() {
+            try {
+                log('开始生成敌人...');
+                game.createEnemies();
+
+                log(`敌人生成完成，共生成 ${game.enemies.length} 个敌人`);
+                game.enemies.forEach((enemy, index) => {
+                    log(`敌人${index + 1}: ${enemy.name} - 初始位置(${enemy.x}, ${enemy.y}) - 速度${enemy.speed}`);
+                });
+
+                updateStatus();
+                document.getElementById('testBattleBtn').disabled = false;
+
+                log('敌人生成完成，可以开始移动和战斗测试');
+            } catch (error) {
+                log(`生成敌人失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function startMovement() {
+            try {
+                if (!game || !game.enemies || game.enemies.length === 0) {
+                    log('请先生成敌人');
+                    return;
+                }
+
+                log('开始敌人移动...');
+                gameRunning = true;
+                game.gameRunning = true;
+
+                // 启动游戏循环
+                game.gameLoop();
+
+                // 定期更新状态
+                moveInterval = setInterval(() => {
+                    if (gameRunning) {
+                        updateEnemyList();
+                    }
+                }, 1000);
+
+                updateStatus();
+                document.getElementById('startMoveBtn').disabled = true;
+                document.getElementById('stopMoveBtn').disabled = false;
+
+                log('敌人移动已开始，观察敌人随机移动');
+            } catch (error) {
+                log(`启动移动失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function stopMovement() {
+            try {
+                log('停止敌人移动...');
+                gameRunning = false;
+                if (game) {
+                    game.gameRunning = false;
+                }
+
+                if (moveInterval) {
+                    clearInterval(moveInterval);
+                    moveInterval = null;
+                }
+
+                updateStatus();
+                document.getElementById('startMoveBtn').disabled = false;
+                document.getElementById('stopMoveBtn').disabled = true;
+
+                log('敌人移动已停止');
+            } catch (error) {
+                log(`停止移动失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function testBattle() {
+            try {
+                if (!game || !game.enemies || game.enemies.length === 0) {
+                    log('请先生成敌人');
+                    return;
+                }
+
+                log('测试战斗功能...');
+                const firstEnemy = game.enemies[0];
+                log(`选择敌人进行战斗: ${firstEnemy.name}`);
+
+                // 模拟战斗开始
+                game.startBattle(firstEnemy);
+                log(`战斗开始！玩家 vs ${firstEnemy.name}`);
+
+                log('战斗测试完成，检查战斗界面是否正常显示');
+            } catch (error) {
+                log(`战斗测试失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        function clearGame() {
+            try {
+                log('清空游戏...');
+                stopMovement();
+
+                if (game && game.gameLayer) {
+                    game.gameLayer.innerHTML = '';
+                }
+
+                game = null;
+                gameRunning = false;
+
+                updateStatus();
+
+                document.getElementById('createPlayerBtn').disabled = true;
+                document.getElementById('spawnEnemiesBtn').disabled = true;
+                document.getElementById('startMoveBtn').disabled = true;
+                document.getElementById('stopMoveBtn').disabled = true;
+                document.getElementById('testBattleBtn').disabled = true;
+
+                log('游戏已清空');
+            } catch (error) {
+                log(`清空游戏失败: ${error.message}`);
+                console.error(error);
+            }
+        }
+
+        // 页面加载完成
+        window.onload = function() {
+            log('敌人移动和战斗测试页面加载完成');
+            log('点击"初始化游戏"开始测试');
+            updateStatus();
+        };
+    </script>
+</body>
+</html>

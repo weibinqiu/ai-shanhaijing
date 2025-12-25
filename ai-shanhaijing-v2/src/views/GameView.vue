@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import CharacterSelect from '@/components/game/CharacterSelect.vue'
@@ -38,6 +38,9 @@ onMounted(() => {
 
   // 监听战斗触发事件
   window.addEventListener('battle-triggered', handleBattleTriggered)
+  
+  // 注册键盘事件
+  window.addEventListener('keydown', handleKeyDown)
 })
 
 // 退出登录
@@ -186,9 +189,10 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 }
 
-// 注册键盘事件
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown)
+// 清理事件监听器
+onBeforeUnmount(() => {
+  window.removeEventListener('battle-triggered', handleBattleTriggered)
+  window.removeEventListener('keydown', handleKeyDown)
 })
 </script>
 

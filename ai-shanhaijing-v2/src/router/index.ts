@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
@@ -6,6 +7,22 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/login',
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
+      path: '/game',
+      name: 'game',
+      component: () => import('../views/GameView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/home',
       name: 'home',
       component: HomeView,
     },
@@ -18,6 +35,21 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
   ],
+})
+
+// Navigation guard for authentication
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore()
+  
+  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
+    // Redirect to login if trying to access protected route without auth
+    next('/login')
+  } else if (to.meta.requiresGuest && userStore.isLoggedIn) {
+    // Redirect to game if already logged in and trying to access login page
+    next('/game')
+  } else {
+    next()
+  }
 })
 
 export default router
